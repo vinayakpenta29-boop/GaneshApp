@@ -1,0 +1,24 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <EditText
+        android:id="@+id/et_income_amount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Amount"/>
+    <EditText
+        android:id="@+id/et_income_note"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Note"/>
+    <Button
+        android:id="@+id/btn_add_income"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add Income"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_income"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+</LinearLayout>
