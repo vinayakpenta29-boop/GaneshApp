@@ -1,19 +1,14 @@
 @echo off
-rem -----------------------------------------------------------------------------
-rem Gradle startup script for Windows
-rem -----------------------------------------------------------------------------
+setlocal
 
-set DEFAULT_JVM_OPTS=
+REM Determine the location of the gradle-wrapper.jar
+set WRAPPER_JAR=%~dp0gradle\wrapper\gradle-wrapper.jar
 
-set APP_NAME=Gradle
-set DIRNAME=%~dp0
-set APP_BASE_NAME=%~n0
+REM Check if gradle-wrapper.jar exists
+if not exist "%WRAPPER_JAR%" (
+    echo Gradle wrapper JAR not found at %WRAPPER_JAR%
+    exit /b 1
+)
 
-setCLASSPATH=%DIRNAME%gradle-launcher.jar
-
-if "%JAVA_OPTS%" == "" goto noJavaOpts
-setJAVA_OPTS=%JAVA_OPTS%
-
-:noJavaOpts
-
-java %JAVA_OPTS% -classpath "%CLASSPATH%" org.gradle.launcher.GradleMain %*
+REM Execute the Gradle wrapper
+java -jar "%WRAPPER_JAR%" %*
