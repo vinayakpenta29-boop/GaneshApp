@@ -1,30 +1,18 @@
-#!/bin/sh
-# ----------------------------------------------------------------------------
-# Gradle start up script for UN*X
-# ----------------------------------------------------------------------------
-# Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
-DEFAULT_JVM_OPTS=""
+#!/usr/bin/env sh
+##############################################################################
+#
+#  Gradle start up script for UN*X
+#
+##############################################################################
 
-APP_NAME="Gradle"
-APP_BASE_NAME=`basename "$0"`
+# Determine the location of the gradle-wrapper.jar
+WRAPPER_JAR="$(dirname "$0")/gradle/wrapper/gradle-wrapper.jar"
 
-# Resolve links - $0 may be a link
-PRG="$0"
+# Check if gradle-wrapper.jar exists
+if [ ! -f "$WRAPPER_JAR" ]; then
+  echo "Gradle wrapper JAR not found at $WRAPPER_JAR"
+  exit 1
+fi
 
-while [ -h "$PRG" ] ; do
-  ls=`ls -ld "$PRG"`
-  link=`expr "$ls" : '.*-> \(.*\)$'`
-  if expr "$link" : '/.*' > /dev/null; then
-    PRG="$link"
-  else
-    PRG=`dirname "$PRG"`/"$link"
-  fi
-done
-
-# Get standard environment variables
-PRGDIR=`dirname "$PRG"`
-
-# Now set the runtime options
-JAVA_OPTS="$DEFAULT_JVM_OPTS $JAVA_OPTS"
-
-exec java $JAVA_OPTS -classpath "$PRGDIR/gradle-launcher.jar" org.gradle.launcher.GradleMain "$@"
+# Execute the Gradle wrapper
+exec java -jar "$WRAPPER_JAR" "$@"
