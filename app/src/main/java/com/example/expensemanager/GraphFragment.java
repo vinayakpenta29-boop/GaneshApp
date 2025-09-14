@@ -1,9 +1,12 @@
 package com.expensemanager;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 
@@ -18,6 +21,7 @@ import java.util.ArrayList;
 
 public class GraphFragment extends Fragment {
     private DatabaseHelper db;
+    private String currentYear = "2025"; // You can use a dropdown/Input for user to select year
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -25,21 +29,34 @@ public class GraphFragment extends Fragment {
         BarChart chart = view.findViewById(R.id.monthly_chart);
 
         db = new DatabaseHelper(getContext());
-        ArrayList<BarEntry> entries = db.getMonthlyBarEntries();
 
-        BarDataSet set = new BarDataSet(entries, "Income/Expense");
-        BarData data = new BarData(set);
+        ArrayList<BarEntry> incomeEntries = new ArrayList<>();
+        ArrayList<BarEntry> expenseEntries = new ArrayList<>();
+        ArrayList<String> monthLabels = new ArrayList<>();
 
-        chart.setData(data);
+        db.getGroupedMonthlyEntries(incomeEntries, expenseEntries, monthLabels, currentYear);
+
+        BarDataSet incomeSet = new BarDataSet(incomeEntries, "Income");
+        incomeSet.setColor(Color.GREEN);
+
+        BarDataSet expenseSet = new BarDataSet(expenseEntries, "Expense");
+        expenseSet.setColor(Color.RED);
+
+        BarData barData = new BarData(incomeSet, expenseSet);
+        barData.setBarWidth(0.3f); // Bars side by side
+
+        chart.setData(barData);
+
+        // Group bars
+        chart.getXAxis().setAxisMinimum(0);
+        chart.groupBars(0, 0.2f, 0.05f);
 
         // Customize X-axis labels for months
         XAxis xAxis = chart.getXAxis();
-        xAxis.setValueFormatter(new IndexAxisValueFormatter(new String[]{
-            "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-        }));
+        xAxis.setValueFormatter(new IndexAxisValueFormatter(monthLabels));
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setGranularity(1f);
-        xAxis.setLabelCount(12);
+        xAxis.setLabelCount(monthLabels.size());
 
         chart.getDescription().setEnabled(false);
         chart.animateY(1000);
