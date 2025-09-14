@@ -29,6 +29,8 @@ public class ExpensesFragment extends Fragment {
 
         EditText etAmount = view.findViewById(R.id.et_expense_amount);
         EditText etNote = view.findViewById(R.id.et_expense_note);
+        EditText etMonth = view.findViewById(R.id.et_expense_month);
+        EditText etYear = view.findViewById(R.id.et_expense_year);
         Button btnAdd = view.findViewById(R.id.btn_add_expense);
         RecyclerView rv = view.findViewById(R.id.rv_expenses);
 
@@ -38,9 +40,11 @@ public class ExpensesFragment extends Fragment {
         btnAdd.setOnClickListener(v -> {
             String amountStr = etAmount.getText().toString().trim();
             String note = etNote.getText().toString().trim();
+            String month = etMonth.getText().toString().trim();
+            String year = etYear.getText().toString().trim();
 
-            if (amountStr.isEmpty()) {
-                Toast.makeText(getContext(), "Enter a valid amount", Toast.LENGTH_SHORT).show();
+            if (amountStr.isEmpty() || month.isEmpty() || year.isEmpty()) {
+                Toast.makeText(getContext(), "Enter amount, month, and year", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -64,7 +68,7 @@ public class ExpensesFragment extends Fragment {
                     new AsyncTask<Void, Void, Void>() {
                         @Override
                         protected Void doInBackground(Void... voids) {
-                            db.insertTransaction("expense", amount, note);
+                            db.insertTransaction("expense", amount, note, month, year);
                             return null;
                         }
 
@@ -73,10 +77,14 @@ public class ExpensesFragment extends Fragment {
                             adapter.setItems(db.getAllTransactions("expense"));
                             etAmount.setText("");
                             etNote.setText("");
+                            etMonth.setText("");
+                            etYear.setText("");
 
                             InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
                             imm.hideSoftInputFromWindow(etAmount.getWindowToken(), 0);
                             imm.hideSoftInputFromWindow(etNote.getWindowToken(), 0);
+                            imm.hideSoftInputFromWindow(etMonth.getWindowToken(), 0);
+                            imm.hideSoftInputFromWindow(etYear.getWindowToken(), 0);
                         }
                     }.execute();
                 })
