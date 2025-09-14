@@ -9,11 +9,10 @@ import android.database.Cursor;
 import com.github.mikephil.charting.data.BarEntry;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "finance.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2; // Bumped version for schema change
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -21,7 +20,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, amount REAL, note TEXT, date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+        db.execSQL("CREATE TABLE transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, amount REAL, note TEXT, month TEXT, year TEXT, date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
     }
 
     @Override
@@ -30,60 +29,43 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public void insertTransaction(String type, double amount, String note) {
+    public void insertTransaction(String type, double amount, String note, String month, String year) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("type", type);
         values.put("amount", amount);
         values.put("note", note != null ? note : "");
+        values.put("month", month);
+        values.put("year", year);
         db.insert("transactions", null, values);
     }
 
-    public ArrayList<Transaction> getAllTransactions(String type) {
-        ArrayList<Transaction> list = new ArrayList<>();
-        SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM transactions WHERE type=?", new String[]{type});
-        if (cursor.moveToFirst()) {
-            do {
-                double amount = cursor.getDouble(cursor.getColumnIndex("amount"));
-                String note = cursor.getString(cursor.getColumnIndex("note"));
-                String date = cursor.getString(cursor.getColumnIndex("date"));
-                list.add(new Transaction(type, amount, note, date));
-            } while (cursor.moveToNext());
-        }
-        cursor.close();
-        return list;
-    }
+    // Update getAllTransactions and relevant queries as needed for month/year if required
 
-    public double getTotalByType(String type) {
+    // Returns grouped monthly totals for income and expense bars, with matching months/year
+    public void getGroupedMonthlyEntries(ArrayList<BarEntry> incomeEntries, ArrayList<BarEntry> expenseEntries, ArrayList<String> monthLabels, String year) {
         SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT SUM(amount) as total FROM transactions WHERE type=?", new String[]{type});
-        double total = 0;
-        if (cursor.moveToFirst()) { total = cursor.getDouble(cursor.getColumnIndex("total")); }
-        cursor.close();
-        return total;
-    }
-
-    // Simple example implementation — sum amounts by month (January=0..December=11)
-    public ArrayList<BarEntry> getMonthlyBarEntries() {
-        ArrayList<BarEntry> entries = new ArrayList<>();
-        SQLiteDatabase db = getReadableDatabase();
-        // Query to group by month (SQLite strftime '%m' for month)
         Cursor cursor = db.rawQuery(
-            "SELECT strftime('%m', date) as month, SUM(amount) as total FROM transactions GROUP BY month ORDER BY month ASC", null);
-        if (cursor.moveToFirst()) {
-            do {
-                int month = Integer.parseInt(cursor.getString(cursor.getColumnIndex("month"))) - 1; // zero-based for BarEntry
-                float total = (float) cursor.getDouble(cursor.getColumnIndex("total"));
-                entries.add(new BarEntry(month, total));
-            } while (cursor.moveToNext());
+            "SELECT month, SUM(CASE WHEN type='income' THEN amount ELSE 0 END) AS income, " +
+            "SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) AS expense " +
+            "FROM transactions WHERE year=? GROUP BY month ORDER BY CAST(month AS INTEGER)", 
+            new String[]{year});
+        int i = 0;
+        while (cursor.moveToNext()) {
+            String month = cursor.getString(cursor.getColumnIndex("month"));
+            float income = (float) cursor.getDouble(cursor.getColumnIndex("income"));
+            float expense = (float) cursor.getDouble(cursor.getColumnIndex("expense"));
+            incomeEntries.add(new BarEntry(i, income));
+            expenseEntries.add(new BarEntry(i, expense));
+            monthLabels.add(month);
+            i++;
         }
         cursor.close();
-
-        // Return dummy data if empty to avoid empty graph
-        if(entries.isEmpty()) {
-            entries.add(new BarEntry(0, 0f));
+        // If empty, add dummy values for chart stability
+        if (incomeEntries.isEmpty() && expenseEntries.isEmpty()) {
+            incomeEntries.add(new BarEntry(0, 0));
+            expenseEntries.add(new BarEntry(0, 0));
+            monthLabels.add("NA");
         }
-        return entries;
     }
 }
