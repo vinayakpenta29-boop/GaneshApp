@@ -6,6 +6,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
+
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -30,10 +32,32 @@ public class ExpensesFragment extends Fragment {
         rv.setAdapter(adapter);
 
         btnAdd.setOnClickListener(v -> {
-            String amount = etAmount.getText().toString();
-            String note = etNote.getText().toString();
-            db.insertTransaction("expense", Double.parseDouble(amount), note);
+            String amountStr = etAmount.getText().toString().trim();
+            String note = etNote.getText().toString().trim();
+
+            if(amountStr.isEmpty()) {
+                Toast.makeText(getContext(), "Enter a valid amount", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            double amount;
+
+            try {
+                amount = Double.parseDouble(amountStr);
+            } catch (NumberFormatException e) {
+                Toast.makeText(getContext(), "Invalid amount format", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if(amount <= 0) {
+                Toast.makeText(getContext(), "Amount must be > 0", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            db.insertTransaction("expense", amount, note);
             adapter.setItems(db.getAllTransactions("expense"));
+            etAmount.setText("");
+            etNote.setText("");
         });
 
         return view;
