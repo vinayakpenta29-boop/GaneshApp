@@ -9,7 +9,7 @@ import android.database.Cursor;
 import com.github.mikephil.charting.data.BarEntry;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Calendar;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "finance.db";
@@ -35,12 +35,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put("type", type);
         values.put("amount", amount);
-        values.put("note", note);
+        values.put("note", note != null ? note : "");
         db.insert("transactions", null, values);
     }
 
-    public List<Transaction> getAllTransactions(String type) {
-        List<Transaction> list = new ArrayList<>();
+    public ArrayList<Transaction> getAllTransactions(String type) {
+        ArrayList<Transaction> list = new ArrayList<>();
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM transactions WHERE type=?", new String[]{type});
         if (cursor.moveToFirst()) {
@@ -64,8 +64,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return total;
     }
 
+    // Simple example implementation — sum amounts by month (January=0..December=11)
     public ArrayList<BarEntry> getMonthlyBarEntries() {
-        // Placeholder: implement monthly grouping and return chart entries.
-        return new ArrayList<>();
+        ArrayList<BarEntry> entries = new ArrayList<>();
+        SQLiteDatabase db = getReadableDatabase();
+        // Query to group by month (SQLite strftime '%m' for month)
+        Cursor cursor = db.rawQuery(
+            "SELECT strftime('%m', date) as month, SUM(amount) as total FROM transactions GROUP BY month ORDER BY month ASC", null);
+        if (cursor.moveToFirst()) {
+            do {
+                int month = Integer.parseInt(cursor.getString(cursor.getColumnIndex("month"))) - 1; // zero-based for BarEntry
+                float total = (float) cursor.getDouble(cursor.getColumnIndex("total"));
+                entries.add(new BarEntry(month, total));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+
+        // Return dummy data if empty to avoid empty graph
+        if(entries.isEmpty()) {
+            entries.add(new BarEntry(0, 0f));
+        }
+        return entries;
     }
 }
