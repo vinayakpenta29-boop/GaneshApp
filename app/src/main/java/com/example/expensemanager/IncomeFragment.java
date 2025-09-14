@@ -1,9 +1,13 @@
 package com.expensemanager;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -35,13 +39,12 @@ public class IncomeFragment extends Fragment {
             String amountStr = etAmount.getText().toString().trim();
             String note = etNote.getText().toString().trim();
 
-            if(amountStr.isEmpty()) {
+            if (amountStr.isEmpty()) {
                 Toast.makeText(getContext(), "Enter a valid amount", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             double amount;
-
             try {
                 amount = Double.parseDouble(amountStr);
             } catch (NumberFormatException e) {
@@ -49,15 +52,36 @@ public class IncomeFragment extends Fragment {
                 return;
             }
 
-            if(amount <= 0) {
-                Toast.makeText(getContext(), "Amount must be > 0", Toast.LENGTH_SHORT).show();
+            if (amount <= 0) {
+                Toast.makeText(getContext(), "Amount must be greater than 0", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            db.insertTransaction("income", amount, note);
-            adapter.setItems(db.getAllTransactions("income"));
-            etAmount.setText("");
-            etNote.setText("");
+            new AlertDialog.Builder(getContext())
+                .setTitle("Confirm Add Income")
+                .setMessage("Add this income?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    new AsyncTask<Void, Void, Void>() {
+                        @Override
+                        protected Void doInBackground(Void... voids) {
+                            db.insertTransaction("income", amount, note);
+                            return null;
+                        }
+
+                        @Override
+                        protected void onPostExecute(Void aVoid) {
+                            adapter.setItems(db.getAllTransactions("income"));
+                            etAmount.setText("");
+                            etNote.setText("");
+
+                            InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                            imm.hideSoftInputFromWindow(etAmount.getWindowToken(), 0);
+                            imm.hideSoftInputFromWindow(etNote.getWindowToken(), 0);
+                        }
+                    }.execute();
+                })
+                .setNegativeButton("No", null)
+                .show();
         });
 
         return view;
