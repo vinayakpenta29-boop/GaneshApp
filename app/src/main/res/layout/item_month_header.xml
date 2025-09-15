@@ -11,7 +11,7 @@
         android:id="@+id/tv_month_header"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Month"
+        android:text="Month-Year"
         android:textStyle="bold"
         android:textSize="18sp"
         android:textColor="#21386E"/>
