@@ -13,7 +13,8 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:hint="Enter Month"/>
+            android:hint="Enter Month (1-12)"
+            android:inputType="number"/>
         <EditText
             android:id="@+id/et_income_year"
             android:layout_width="0dp"
@@ -24,15 +25,16 @@
     </LinearLayout>
 
     <EditText
-        android:id="@+id/et_income_amount"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Amount"/>
-    <EditText
         android:id="@+id/et_income_note"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Note"/>
+    <EditText
+        android:id="@+id/et_income_amount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Amount"
+        android:inputType="numberDecimal"/>
     <Button
         android:id="@+id/btn_add_income"
         android:layout_width="match_parent"
