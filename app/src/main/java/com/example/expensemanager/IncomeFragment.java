@@ -22,18 +22,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 import java.util.Map;
 
-import com.expensemanager.DatabaseHelper;
-import com.expensemanager.GroupedTransactionAdapter;
-import com.expensemanager.Transaction;
-
-public class IncomeFragment extends Fragment {
-    // ... rest of your code ...
-}
-
-
-// ... imports ...
-import android.text.InputFilter;
-
 public class IncomeFragment extends Fragment {
     private DatabaseHelper db;
     private GroupedTransactionAdapter adapter;
@@ -59,18 +47,17 @@ public class IncomeFragment extends Fragment {
 
         // Allow only valid months (1-12)
         etMonth.setFilters(new InputFilter[]{
-                new InputFilter.LengthFilter(2),
-                (source, start, end, dest, dstart, dend) -> {
-                    String result = dest.toString().substring(0, dstart) + source + dest.toString().substring(dend);
-                    if (result.isEmpty()) return null;
-                    try {
-                        int value = Integer.parseInt(result);
-                        if (value < 1 || value > 12) return "";
-                    } catch (NumberFormatException e) { return ""; }
-                    return null;
-                }
+            new InputFilter.LengthFilter(2),
+            (source, start, end, dest, dstart, dend) -> {
+                String result = dest.toString().substring(0, dstart) + source + dest.toString().substring(dend);
+                if (result.isEmpty()) return null;
+                try {
+                    int value = Integer.parseInt(result);
+                    if (value < 1 || value > 12) return "";
+                } catch (NumberFormatException e) { return ""; }
+                return null;
+            }
         });
-        // Amount InputType already set to decimal in XML
 
         // Filter list whenever Month or Year changes
         TextWatcher filterWatcher = new TextWatcher() {
