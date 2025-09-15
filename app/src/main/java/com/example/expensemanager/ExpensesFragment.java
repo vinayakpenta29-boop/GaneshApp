@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.InputFilter;
 import android.text.TextWatcher;
 import android.text.Editable;
 import android.view.LayoutInflater;
@@ -25,6 +26,7 @@ public class ExpensesFragment extends Fragment {
     private DatabaseHelper db;
     private GroupedTransactionAdapter adapter;
     private EditText etMonth, etYear, etAmount, etNote;
+    private String selectedYear = "";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -43,12 +45,30 @@ public class ExpensesFragment extends Fragment {
         rv.setLayoutManager(new LinearLayoutManager(getContext()));
         rv.setAdapter(adapter);
 
+        // Month only allows 1-12 numbers
+        etMonth.setFilters(new InputFilter[]{
+                new InputFilter.LengthFilter(2),
+                (source, start, end, dest, dstart, dend) -> {
+                    String result = dest.toString().substring(0, dstart) + source + dest.toString().substring(dend);
+                    if (result.isEmpty()) return null;
+                    try {
+                        int value = Integer.parseInt(result);
+                        if (value < 1 || value > 12) return "";
+                    } catch (NumberFormatException e) { return ""; }
+                    return null;
+                }
+        });
+
+        // Amount input type already set to decimal in XML
+
         // Filter list whenever Month or Year changes
         TextWatcher filterWatcher = new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void afterTextChanged(Editable s) {}
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
+                selectedYear = etYear.getText().toString().trim();
+                adapter.setSelectedYear(selectedYear);
                 updateList();
             }
         };
@@ -91,10 +111,11 @@ public class ExpensesFragment extends Fragment {
                         }
                         @Override
                         protected void onPostExecute(Void aVoid) {
+                            selectedYear = etYear.getText().toString().trim();
+                            adapter.setSelectedYear(selectedYear);
                             updateList();
                             etAmount.setText("");
                             etNote.setText("");
-                            // Don't clear month/year so filter stays focused
                             InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
                             imm.hideSoftInputFromWindow(etAmount.getWindowToken(), 0);
                             imm.hideSoftInputFromWindow(etNote.getWindowToken(), 0);
@@ -105,19 +126,18 @@ public class ExpensesFragment extends Fragment {
                 .show();
         });
 
-        // Initial load
+        selectedYear = etYear.getText().toString().trim();
+        adapter.setSelectedYear(selectedYear);
         updateList();
 
         return view;
     }
 
-    // Only show for month/year fields (both required, else show empty)
     private void updateList() {
         String month = etMonth.getText().toString().trim();
         String year = etYear.getText().toString().trim();
         if (!month.isEmpty() && !year.isEmpty()) {
             Map<String, List<Transaction>> grouped = db.getTransactionsByTypeAndYearGroupedByMonth("expense", year);
-            // Filter map to include only the selected month
             Map<String, List<Transaction>> filtered = new java.util.LinkedHashMap<>();
             if (grouped.containsKey(month)) {
                 filtered.put(month, grouped.get(month));
