@@ -9,6 +9,9 @@ import android.database.Cursor;
 import com.github.mikephil.charting.data.BarEntry;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "finance.db";
@@ -40,7 +43,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.insert("transactions", null, values);
     }
 
-    // This method provides all transactions of a given type.
+    // Fetch all transactions for a given type.
     public ArrayList<Transaction> getAllTransactions(String type) {
         ArrayList<Transaction> list = new ArrayList<>();
         SQLiteDatabase db = getReadableDatabase();
@@ -59,7 +62,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return list;
     }
 
-    // This method provides the total for a given transaction type.
+    // Total for a given type.
     public double getTotalByType(String type) {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT SUM(amount) as total FROM transactions WHERE type=?", new String[]{type});
@@ -95,5 +98,28 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             expenseEntries.add(new BarEntry(0, 0));
             monthLabels.add("NA");
         }
+    }
+
+    // *** NEW: Group all transactions by month for a given type and year
+    public Map<String, List<Transaction>> getTransactionsByTypeAndYearGroupedByMonth(String type, String year) {
+        Map<String, List<Transaction>> map = new LinkedHashMap<>();
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(
+            "SELECT * FROM transactions WHERE type=? AND year=? ORDER BY CAST(month AS INTEGER), date DESC",
+            new String[]{type, year});
+        while (cursor.moveToNext()) {
+            double amount = cursor.getDouble(cursor.getColumnIndex("amount"));
+            String note = cursor.getString(cursor.getColumnIndex("note"));
+            String month = cursor.getString(cursor.getColumnIndex("month"));
+            String txnYear = cursor.getString(cursor.getColumnIndex("year"));
+            String date = cursor.getString(cursor.getColumnIndex("date"));
+            Transaction txn = new Transaction(type, amount, note, month, txnYear, date);
+            if (!map.containsKey(month)) {
+                map.put(month, new ArrayList<>());
+            }
+            map.get(month).add(txn);
+        }
+        cursor.close();
+        return map;
     }
 }
