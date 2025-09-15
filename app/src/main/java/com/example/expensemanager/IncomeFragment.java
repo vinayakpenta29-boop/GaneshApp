@@ -1,3 +1,36 @@
+package com.expensemanager;
+
+import android.app.AlertDialog;
+import android.content.Context;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.text.Editable;
+import android.text.InputFilter;
+import android.text.TextWatcher;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.List;
+import java.util.Map;
+
+import com.expensemanager.DatabaseHelper;
+import com.expensemanager.GroupedTransactionAdapter;
+import com.expensemanager.Transaction;
+
+public class IncomeFragment extends Fragment {
+    // ... rest of your code ...
+}
+
+
 // ... imports ...
 import android.text.InputFilter;
 
