@@ -13,7 +13,13 @@ public class GroupedTransactionAdapter extends RecyclerView.Adapter<RecyclerView
     public static final int TYPE_HEADER = 0;
     public static final int TYPE_ITEM = 1;
 
+    private String selectedYear = "";
     private List<Object> items = new ArrayList<>();
+
+    public void setSelectedYear(String year) {
+        this.selectedYear = year;
+        notifyDataSetChanged();
+    }
 
     public void setData(Map<String, List<Transaction>> grouped) {
         items.clear();
@@ -44,7 +50,7 @@ public class GroupedTransactionAdapter extends RecyclerView.Adapter<RecyclerView
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         if (holder instanceof HeaderViewHolder) {
             String month = (String) items.get(position);
-            ((HeaderViewHolder) holder).tvMonthHeader.setText(month);
+            ((HeaderViewHolder) holder).tvMonthHeader.setText(month + "-" + selectedYear);
         } else if (holder instanceof TransactionViewHolder) {
             Transaction item = (Transaction) items.get(position);
             ((TransactionViewHolder) holder).tvAmount.setText(String.valueOf(item.amount));
