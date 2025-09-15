@@ -35,8 +35,10 @@ public class GraphFragment extends Fragment {
 
         db = new DatabaseHelper(getContext());
 
-        // Get all unique years and set spinner options
+        // Fetch all unique years from DB for the spinner
         List<String> years = db.getAllYears();
+        if (years.isEmpty()) years.add("2025"); // fallback if no data
+
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, years);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerYear.setAdapter(adapter);
@@ -44,7 +46,7 @@ public class GraphFragment extends Fragment {
 
         spinnerYear.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
                 selectedYear = years.get(position);
                 updateChartForYear(selectedYear);
             }
@@ -52,7 +54,7 @@ public class GraphFragment extends Fragment {
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        // Initial display
+        // Initial display if Spinner doesn't fire selection
         if (!years.isEmpty()) {
             selectedYear = years.get(years.size() - 1);
             updateChartForYear(selectedYear);
