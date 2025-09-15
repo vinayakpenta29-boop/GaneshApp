@@ -74,6 +74,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return total;
     }
 
+    // List all distinct years present in the transactions table (for graph/year filter)
+    public List<String> getAllYears() {
+        List<String> years = new ArrayList<>();
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT DISTINCT year FROM transactions ORDER BY year ASC", null);
+        while (cursor.moveToNext()) {
+            years.add(cursor.getString(0));
+        }
+        cursor.close();
+        return years;
+    }
+
     // Grouped monthly totals for chart: incoming as BarEntry lists and month labels
     public void getGroupedMonthlyEntries(ArrayList<BarEntry> incomeEntries, ArrayList<BarEntry> expenseEntries, ArrayList<String> monthLabels, String year) {
         SQLiteDatabase db = getReadableDatabase();
@@ -100,7 +112,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // *** NEW: Group all transactions by month for a given type and year
+    // Group all transactions by month for a given type and year (used for display in tabs)
     public Map<String, List<Transaction>> getTransactionsByTypeAndYearGroupedByMonth(String type, String year) {
         Map<String, List<Transaction>> map = new LinkedHashMap<>();
         SQLiteDatabase db = getReadableDatabase();
