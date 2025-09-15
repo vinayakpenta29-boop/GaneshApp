@@ -4,6 +4,8 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.TextWatcher;
+import android.text.Editable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,11 +18,13 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.List;
 import java.util.Map;
 
 public class ExpensesFragment extends Fragment {
     private DatabaseHelper db;
     private GroupedTransactionAdapter adapter;
+    private EditText etMonth, etYear, etAmount, etNote;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -29,17 +33,27 @@ public class ExpensesFragment extends Fragment {
         db = new DatabaseHelper(getContext());
         adapter = new GroupedTransactionAdapter();
 
-        EditText etAmount = view.findViewById(R.id.et_expense_amount);
-        EditText etNote = view.findViewById(R.id.et_expense_note);
-        EditText etMonth = view.findViewById(R.id.et_expense_month);
-        EditText etYear = view.findViewById(R.id.et_expense_year);
+        etAmount = view.findViewById(R.id.et_expense_amount);
+        etNote = view.findViewById(R.id.et_expense_note);
+        etMonth = view.findViewById(R.id.et_expense_month);
+        etYear = view.findViewById(R.id.et_expense_year);
         Button btnAdd = view.findViewById(R.id.btn_add_expense);
         RecyclerView rv = view.findViewById(R.id.rv_expenses);
 
         rv.setLayoutManager(new LinearLayoutManager(getContext()));
         rv.setAdapter(adapter);
 
-        String currentYear = ""; // You may add an input for selecting/displaying current year
+        // Filter list whenever Month or Year changes
+        TextWatcher filterWatcher = new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void afterTextChanged(Editable s) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                updateList();
+            }
+        };
+        etMonth.addTextChangedListener(filterWatcher);
+        etYear.addTextChangedListener(filterWatcher);
 
         btnAdd.setOnClickListener(v -> {
             String amountStr = etAmount.getText().toString().trim();
@@ -75,21 +89,15 @@ public class ExpensesFragment extends Fragment {
                             db.insertTransaction("expense", amount, note, month, year);
                             return null;
                         }
-
                         @Override
                         protected void onPostExecute(Void aVoid) {
-                            Map<String, java.util.List<Transaction>> grouped = db.getTransactionsByTypeAndYearGroupedByMonth("expense", year);
-                            adapter.setData(grouped);
+                            updateList();
                             etAmount.setText("");
                             etNote.setText("");
-                            etMonth.setText("");
-                            etYear.setText("");
-
+                            // Don't clear month/year so filter stays focused
                             InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
                             imm.hideSoftInputFromWindow(etAmount.getWindowToken(), 0);
                             imm.hideSoftInputFromWindow(etNote.getWindowToken(), 0);
-                            imm.hideSoftInputFromWindow(etMonth.getWindowToken(), 0);
-                            imm.hideSoftInputFromWindow(etYear.getWindowToken(), 0);
                         }
                     }.execute();
                 })
@@ -97,11 +105,26 @@ public class ExpensesFragment extends Fragment {
                 .show();
         });
 
-        // Initial load for an example year, e.g., "2025"
-        currentYear = "2025";
-        Map<String, java.util.List<Transaction>> grouped = db.getTransactionsByTypeAndYearGroupedByMonth("expense", currentYear);
-        adapter.setData(grouped);
+        // Initial load
+        updateList();
 
         return view;
+    }
+
+    // Only show for month/year fields (both required, else show empty)
+    private void updateList() {
+        String month = etMonth.getText().toString().trim();
+        String year = etYear.getText().toString().trim();
+        if (!month.isEmpty() && !year.isEmpty()) {
+            Map<String, List<Transaction>> grouped = db.getTransactionsByTypeAndYearGroupedByMonth("expense", year);
+            // Filter map to include only the selected month
+            Map<String, List<Transaction>> filtered = new java.util.LinkedHashMap<>();
+            if (grouped.containsKey(month)) {
+                filtered.put(month, grouped.get(month));
+            }
+            adapter.setData(filtered);
+        } else {
+            adapter.setData(new java.util.LinkedHashMap<>());
+        }
     }
 }
