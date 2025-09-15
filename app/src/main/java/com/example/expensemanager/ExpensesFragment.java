@@ -16,16 +16,18 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.Map;
+
 public class ExpensesFragment extends Fragment {
     private DatabaseHelper db;
-    private TransactionAdapter adapter;
+    private GroupedTransactionAdapter adapter;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_expenses, container, false);
 
         db = new DatabaseHelper(getContext());
-        adapter = new TransactionAdapter(db.getAllTransactions("expense"));
+        adapter = new GroupedTransactionAdapter();
 
         EditText etAmount = view.findViewById(R.id.et_expense_amount);
         EditText etNote = view.findViewById(R.id.et_expense_note);
@@ -36,6 +38,8 @@ public class ExpensesFragment extends Fragment {
 
         rv.setLayoutManager(new LinearLayoutManager(getContext()));
         rv.setAdapter(adapter);
+
+        String currentYear = ""; // You may add an input for selecting/displaying current year
 
         btnAdd.setOnClickListener(v -> {
             String amountStr = etAmount.getText().toString().trim();
@@ -74,7 +78,8 @@ public class ExpensesFragment extends Fragment {
 
                         @Override
                         protected void onPostExecute(Void aVoid) {
-                            adapter.setItems(db.getAllTransactions("expense"));
+                            Map<String, java.util.List<Transaction>> grouped = db.getTransactionsByTypeAndYearGroupedByMonth("expense", year);
+                            adapter.setData(grouped);
                             etAmount.setText("");
                             etNote.setText("");
                             etMonth.setText("");
@@ -91,6 +96,11 @@ public class ExpensesFragment extends Fragment {
                 .setNegativeButton("No", null)
                 .show();
         });
+
+        // Initial load for an example year, e.g., "2025"
+        currentYear = "2025";
+        Map<String, java.util.List<Transaction>> grouped = db.getTransactionsByTypeAndYearGroupedByMonth("expense", currentYear);
+        adapter.setData(grouped);
 
         return view;
     }
