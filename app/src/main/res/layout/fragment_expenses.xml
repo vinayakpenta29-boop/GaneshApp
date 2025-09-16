@@ -19,7 +19,7 @@
             android:hint="Note"
             android:background="@android:color/transparent"
             android:textColor="@android:color/black"
-            android:hintTextColor="#88000000"
+            android:textColorHint="#88000000"
             android:padding="14dp"/>
     </androidx.cardview.widget.CardView>
 
@@ -37,7 +37,7 @@
             android:inputType="numberDecimal"
             android:background="@android:color/transparent"
             android:textColor="@android:color/black"
-            android:hintTextColor="#88000000"
+            android:textColorHint="#88000000"
             android:padding="14dp"/>
     </androidx.cardview.widget.CardView>
 
@@ -63,7 +63,7 @@
                 android:inputType="number"
                 android:background="@android:color/transparent"
                 android:textColor="@android:color/black"
-                android:hintTextColor="#88000000"
+                android:textColorHint="#88000000"
                 android:padding="14dp"/>
         </androidx.cardview.widget.CardView>
 
@@ -82,7 +82,7 @@
                 android:inputType="number"
                 android:background="@android:color/transparent"
                 android:textColor="@android:color/black"
-                android:hintTextColor="#88000000"
+                android:textColorHint="#88000000"
                 android:padding="14dp"/>
         </androidx.cardview.widget.CardView>
     </LinearLayout>
