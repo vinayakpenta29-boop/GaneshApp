@@ -18,7 +18,8 @@
             android:layout_height="wrap_content"
             android:hint="Note"
             android:background="@android:color/transparent"
-            android:textColor="@android:color/white"
+            android:textColor="@android:color/black"
+            android:hintTextColor="#88000000"
             android:padding="14dp"/>
     </androidx.cardview.widget.CardView>
 
@@ -35,7 +36,8 @@
             android:hint="Amount"
             android:inputType="numberDecimal"
             android:background="@android:color/transparent"
-            android:textColor="@android:color/white"
+            android:textColor="@android:color/black"
+            android:hintTextColor="#88000000"
             android:padding="14dp"/>
     </androidx.cardview.widget.CardView>
 
@@ -60,7 +62,8 @@
                 android:hint="Enter Month (1-12)"
                 android:inputType="number"
                 android:background="@android:color/transparent"
-                android:textColor="@android:color/white"
+                android:textColor="@android:color/black"
+                android:hintTextColor="#88000000"
                 android:padding="14dp"/>
         </androidx.cardview.widget.CardView>
 
@@ -78,7 +81,8 @@
                 android:hint="Enter Year"
                 android:inputType="number"
                 android:background="@android:color/transparent"
-                android:textColor="@android:color/white"
+                android:textColor="@android:color/black"
+                android:hintTextColor="#88000000"
                 android:padding="14dp"/>
         </androidx.cardview.widget.CardView>
     </LinearLayout>
