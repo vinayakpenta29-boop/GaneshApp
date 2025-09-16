@@ -98,7 +98,7 @@
         android:background="@drawable/curved_purple_button"
         android:layout_marginBottom="18dp"/>
 
-    <android.cardview.widget.CardView
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
