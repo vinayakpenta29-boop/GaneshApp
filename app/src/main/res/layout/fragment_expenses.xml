@@ -6,41 +6,6 @@
     android:background="#22223A"
     android:padding="16dp">
 
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardCornerRadius="18dp"
-        app:cardElevation="2dp"
-        android:layout_marginBottom="12dp">
-        <EditText
-            android:id="@+id/et_expense_note"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Note"
-            android:background="@android:color/transparent"
-            android:textColor="@android:color/black"
-            android:textColorHint="#88000000"
-            android:padding="14dp"/>
-    </androidx.cardview.widget.CardView>
-
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardCornerRadius="18dp"
-        app:cardElevation="2dp"
-        android:layout_marginBottom="12dp">
-        <EditText
-            android:id="@+id/et_expense_amount"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Amount"
-            android:inputType="numberDecimal"
-            android:background="@android:color/transparent"
-            android:textColor="@android:color/black"
-            android:textColorHint="#88000000"
-            android:padding="14dp"/>
-    </androidx.cardview.widget.CardView>
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -86,6 +51,41 @@
                 android:padding="14dp"/>
         </androidx.cardview.widget.CardView>
     </LinearLayout>
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="18dp"
+        app:cardElevation="2dp"
+        android:layout_marginBottom="12dp">
+        <EditText
+            android:id="@+id/et_expense_note"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Note"
+            android:background="@android:color/transparent"
+            android:textColor="@android:color/black"
+            android:textColorHint="#88000000"
+            android:padding="14dp"/>
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="18dp"
+        app:cardElevation="2dp"
+        android:layout_marginBottom="12dp">
+        <EditText
+            android:id="@+id/et_expense_amount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Amount"
+            android:inputType="numberDecimal"
+            android:background="@android:color/transparent"
+            android:textColor="@android:color/black"
+            android:textColorHint="#88000000"
+            android:padding="14dp"/>
+    </androidx.cardview.widget.CardView>
 
     <Button
         android:id="@+id/btn_add_expense"
