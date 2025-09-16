@@ -52,29 +52,29 @@ public class GraphFragment extends Fragment {
         if (years.isEmpty()) {
             years.add(String.valueOf(Calendar.getInstance().get(Calendar.YEAR)));
         }
+
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(
-                getContext(),
-                android.R.layout.simple_spinner_item,
-                years
+            requireContext(), // use requireContext() for Fragment
+            android.R.layout.simple_spinner_item,
+            years
         ) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 View v = super.getView(position, convertView, parent);
-                if (v instanceof TextView) ((TextView) v).setTextColor(Color.WHITE);
+                if (v instanceof TextView) ((TextView) v).setTextColor(Color.BLACK); // force black text
                 return v;
             }
-
             @Override
             public View getDropDownView(int position, View convertView, ViewGroup parent) {
                 View v = super.getDropDownView(position, convertView, parent);
-                if (v instanceof TextView) ((TextView) v).setTextColor(Color.WHITE);
+                if (v instanceof TextView) ((TextView) v).setTextColor(Color.BLACK); // force black text
                 return v;
             }
         };
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerYear.setAdapter(adapter);
 
-        // Set selection to previously selected, or most recent
+        // Properly restore selection
         int selIndex = years.contains(selectedYear) ? years.indexOf(selectedYear) : years.size() - 1;
         spinnerYear.setSelection(selIndex, false);
 
@@ -84,12 +84,11 @@ public class GraphFragment extends Fragment {
                 selectedYear = years.get(position);
                 updateChartForYear(selectedYear);
             }
-
             @Override
-            public void onNothingSelected(AdapterView<?> parent) { }
+            public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        // Initial chart update
+        // Initial chart update (in case setOnItemSelectedListener not triggered)
         selectedYear = years.get(spinnerYear.getSelectedItemPosition());
         updateChartForYear(selectedYear);
     }
