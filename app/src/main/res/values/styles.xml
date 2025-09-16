@@ -12,8 +12,8 @@
     </style>
 
     <!-- Spinner with white text for year selector in Graph tab -->
-    <style name="WhiteSpinner" parent="Widget.AppCompat.Spinner">
-        <item name="android:textColor">@android:color/white</item>
-        <item name="android:popupBackground">#393959</item>
+    <style name="BlackSpinner" parent="Widget.AppCompat.Spinner">
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:popupBackground">#f0f0f0</item>
     </style>
 </resources>
