@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:backgroundTint="#393959"
         android:layout_marginBottom="18dp"
-        android:theme="@style/WhiteSpinner"/>
+        android:theme="@style/BlackSpinner"/>
 
     <com.github.mikephil.charting.charts.BarChart
         android:id="@+id/monthly_chart"
