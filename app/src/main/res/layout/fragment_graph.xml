@@ -1,33 +1,13 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:background="#d3d3d3"
-    android:padding="16dp"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <Spinner
-        android:id="@+id/spinner_year"
+    <LinearLayout
+        android:id="@+id/chart_container"
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:backgroundTint="#d3d3d3"
-        android:layout_marginBottom="18dp"
-        android:theme="@style/BlackSpinner"/>
+        android:padding="16dp"/>
 
-    <TextView
-        android:id="@+id/tv_no_data"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="No transactions to display"
-        android:gravity="center"
-        android:textColor="#111"
-        android:paddingTop="16dp"
-        android:visibility="gone"/>
-
-    <com.github.mikephil.charting.charts.BarChart
-        android:id="@+id/monthly_chart"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"/>
-
-</LinearLayout>
+</ScrollView>
