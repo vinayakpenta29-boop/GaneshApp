@@ -71,7 +71,10 @@ public class GraphFragment extends Fragment {
                 return v;
             }
         };
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        // Use custom dropdown layout to avoid duplicate arrows/rows
+        adapter.setDropDownViewResource(R.layout.my_spinner_dropdown_item);
+
         spinnerYear.setAdapter(adapter);
 
         // Restore previously selected year, if possible
