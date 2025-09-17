@@ -5,10 +5,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Spinner;
-import android.widget.ArrayAdapter;
-import android.widget.AdapterView;
-import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
 
@@ -26,17 +22,14 @@ import java.util.List;
 public class GraphFragment extends Fragment {
     private DatabaseHelper db;
     private BarChart chart;
-    private Spinner spinnerYear;
-    private String selectedYear = "";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_graph, container, false);
         chart = view.findViewById(R.id.monthly_chart);
-        spinnerYear = view.findViewById(R.id.spinner_year);
 
         db = new DatabaseHelper(getContext());
-        setupYearSpinner();
+        updateChartForLatestYear();
 
         return view;
     }
@@ -44,56 +37,15 @@ public class GraphFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        setupYearSpinner();
+        updateChartForLatestYear();
     }
 
-    private void setupYearSpinner() {
+    private void updateChartForLatestYear() {
         List<String> years = db.getAllYears();
-        if (years.isEmpty()) {
-            years.add(String.valueOf(Calendar.getInstance().get(Calendar.YEAR)));
-        }
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
-            requireContext(),
-            android.R.layout.simple_spinner_item,
-            years
-        ) {
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                View v = super.getView(position, convertView, parent);
-                if (v instanceof TextView) ((TextView) v).setTextColor(Color.BLACK);
-                return v;
-            }
-            @Override
-            public View getDropDownView(int position, View convertView, ViewGroup parent) {
-                View v = super.getDropDownView(position, convertView, parent);
-                if (v instanceof TextView) ((TextView) v).setTextColor(Color.BLACK);
-                return v;
-            }
-        };
-
-        // Use custom dropdown layout to avoid duplicate arrows/rows
-        adapter.setDropDownViewResource(R.layout.my_spinner_dropdown_item);
-
-        spinnerYear.setAdapter(adapter);
-
-        // Restore previously selected year, if possible
-        int selIndex = years.contains(selectedYear) ? years.indexOf(selectedYear) : years.size() - 1;
-        spinnerYear.setSelection(selIndex, false);
-
-        spinnerYear.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
-                selectedYear = years.get(position);
-                updateChartForYear(selectedYear);
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
-
-        // Initial chart update
-        selectedYear = years.get(spinnerYear.getSelectedItemPosition());
-        updateChartForYear(selectedYear);
+        String yearToShow = years.isEmpty() ?
+                String.valueOf(Calendar.getInstance().get(Calendar.YEAR)) :
+                years.get(years.size() - 1);
+        updateChartForYear(yearToShow);
     }
 
     private void updateChartForYear(String year) {
