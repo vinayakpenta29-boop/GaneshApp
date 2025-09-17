@@ -70,7 +70,7 @@ public class GraphFragment extends Fragment {
                 return v;
             }
         };
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        adapter.setDropDownViewResource(android.R.layout.my_spinner_dropdown_item);
         spinnerYear.setAdapter(adapter);
 
         if (years.isEmpty()) {
