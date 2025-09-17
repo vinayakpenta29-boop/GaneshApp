@@ -53,7 +53,7 @@ public class GraphFragment extends Fragment {
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(
                 requireContext(),
-                android.R.layout.simple_spinner_item,
+                android.R.layout.simple_spinner_item, // main selected text uses default layout
                 years
         ) {
             @Override
@@ -70,7 +70,8 @@ public class GraphFragment extends Fragment {
                 return v;
             }
         };
-        adapter.setDropDownViewResource(android.R.layout.my_spinner_dropdown_item);
+        // Use your project-specific layout for the dropdown
+        adapter.setDropDownViewResource(R.layout.my_spinner_dropdown_item);
         spinnerYear.setAdapter(adapter);
 
         if (years.isEmpty()) {
