@@ -2,12 +2,11 @@ package com.expensemanager;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Spinner;
-import android.widget.ArrayAdapter;
-import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
@@ -24,85 +23,77 @@ import java.util.List;
 
 public class GraphFragment extends Fragment {
     private DatabaseHelper db;
-    private BarChart chart;
-    private Spinner spinnerYear;
-    private TextView tvNoData;
-    private String selectedYear = "";
+    private LinearLayout chartContainer;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_graph, container, false);
-        chart = view.findViewById(R.id.monthly_chart);
-        spinnerYear = view.findViewById(R.id.spinner_year);
-        tvNoData = view.findViewById(R.id.tv_no_data);
-
+        chartContainer = view.findViewById(R.id.chart_container);
         db = new DatabaseHelper(getContext());
-        setupYearSpinner();
-
+        displayAllYearCharts();
         return view;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        setupYearSpinner();
+        displayAllYearCharts();
     }
 
-    private void setupYearSpinner() {
+    private void displayAllYearCharts() {
+        chartContainer.removeAllViews();
+
         List<String> years = db.getAllYears();
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
-                requireContext(),
-                android.R.layout.simple_spinner_item, // main selected text uses default layout
-                years
-        ) {
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                View v = super.getView(position, convertView, parent);
-                if (v instanceof TextView) ((TextView) v).setTextColor(Color.BLACK);
-                return v;
-            }
-
-            @Override
-            public View getDropDownView(int position, View convertView, ViewGroup parent) {
-                View v = super.getDropDownView(position, convertView, parent);
-                if (v instanceof TextView) ((TextView) v).setTextColor(Color.BLACK);
-                return v;
-            }
-        };
-        // Use your project-specific layout for the dropdown
-        adapter.setDropDownViewResource(R.layout.my_spinner_dropdown_item);
-        spinnerYear.setAdapter(adapter);
-
         if (years.isEmpty()) {
-            chart.setVisibility(View.GONE);
-            tvNoData.setVisibility(View.VISIBLE);
-            spinnerYear.setVisibility(View.GONE);
+            TextView noData = new TextView(getContext());
+            noData.setText("No transactions to display");
+            noData.setTextSize(16);
+            noData.setGravity(Gravity.CENTER);
+            noData.setTextColor(Color.parseColor("#111111"));
+            noData.setPadding(0, 32, 0, 32);
+            chartContainer.addView(noData);
             return;
-        } else {
-            chart.setVisibility(View.VISIBLE);
-            tvNoData.setVisibility(View.GONE);
-            spinnerYear.setVisibility(View.VISIBLE);
         }
 
-        int selIndex = years.contains(selectedYear) ? years.indexOf(selectedYear) : years.size() - 1;
-        spinnerYear.setSelection(selIndex, false);
+        for (int i = 0; i < years.size(); i++) {
+            String year = years.get(i);
 
-        spinnerYear.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
-                selectedYear = years.get(position);
-                updateChartForYear(selectedYear);
+            // Year heading
+            TextView yearLabel = new TextView(getContext());
+            yearLabel.setText(year);
+            yearLabel.setTextSize(22);
+            yearLabel.setTextColor(Color.BLACK);
+            yearLabel.setGravity(Gravity.CENTER);
+            yearLabel.setTypeface(yearLabel.getTypeface(), android.graphics.Typeface.BOLD);
+            yearLabel.setPadding(0, 32, 0, 16);
+            chartContainer.addView(yearLabel);
+
+            // Chart for this year
+            BarChart chart = new BarChart(getContext());
+            LinearLayout.LayoutParams chartParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                600 // Height in pixels (adjust as needed)
+            );
+            chart.setLayoutParams(chartParams);
+            setupChartForYear(chart, year);
+            chartContainer.addView(chart);
+
+            // Divider between years
+            if (i < years.size() - 1) {
+                View divider = new View(getContext());
+                LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    4 // Thickness in px (adjust as needed)
+                );
+                dividerParams.setMargins(0, 32, 0, 32);
+                divider.setLayoutParams(dividerParams);
+                divider.setBackgroundColor(Color.BLACK);
+                chartContainer.addView(divider);
             }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
-
-        selectedYear = years.get(spinnerYear.getSelectedItemPosition());
-        updateChartForYear(selectedYear);
+        }
     }
 
-    private void updateChartForYear(String year) {
+    private void setupChartForYear(BarChart chart, String year) {
         ArrayList<BarEntry> incomeEntries = new ArrayList<>();
         ArrayList<BarEntry> expenseEntries = new ArrayList<>();
         ArrayList<String> monthLabels = new ArrayList<>();
