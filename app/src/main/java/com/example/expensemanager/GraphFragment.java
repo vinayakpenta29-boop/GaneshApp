@@ -54,27 +54,27 @@ public class GraphFragment extends Fragment {
         }
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(
-            requireContext(), // use requireContext() for Fragment
+            requireContext(),
             android.R.layout.simple_spinner_item,
             years
         ) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 View v = super.getView(position, convertView, parent);
-                if (v instanceof TextView) ((TextView) v).setTextColor(Color.BLACK); // force black text
+                if (v instanceof TextView) ((TextView) v).setTextColor(Color.BLACK);
                 return v;
             }
             @Override
             public View getDropDownView(int position, View convertView, ViewGroup parent) {
                 View v = super.getDropDownView(position, convertView, parent);
-                if (v instanceof TextView) ((TextView) v).setTextColor(Color.BLACK); // force black text
+                if (v instanceof TextView) ((TextView) v).setTextColor(Color.BLACK);
                 return v;
             }
         };
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerYear.setAdapter(adapter);
 
-        // Properly restore selection
+        // Restore previously selected year, if possible
         int selIndex = years.contains(selectedYear) ? years.indexOf(selectedYear) : years.size() - 1;
         spinnerYear.setSelection(selIndex, false);
 
@@ -88,7 +88,7 @@ public class GraphFragment extends Fragment {
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        // Initial chart update (in case setOnItemSelectedListener not triggered)
+        // Initial chart update
         selectedYear = years.get(spinnerYear.getSelectedItemPosition());
         updateChartForYear(selectedYear);
     }
