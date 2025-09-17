@@ -20,13 +20,13 @@ import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 public class GraphFragment extends Fragment {
     private DatabaseHelper db;
     private BarChart chart;
     private Spinner spinnerYear;
+    private TextView tvNoData;
     private String selectedYear = "";
 
     @Override
@@ -34,6 +34,7 @@ public class GraphFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_graph, container, false);
         chart = view.findViewById(R.id.monthly_chart);
         spinnerYear = view.findViewById(R.id.spinner_year);
+        tvNoData = view.findViewById(R.id.tv_no_data);
 
         db = new DatabaseHelper(getContext());
         setupYearSpinner();
@@ -49,9 +50,7 @@ public class GraphFragment extends Fragment {
 
     private void setupYearSpinner() {
         List<String> years = db.getAllYears();
-        if (years.isEmpty()) {
-            years.add(String.valueOf(Calendar.getInstance().get(Calendar.YEAR)));
-        }
+
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(
                 requireContext(),
                 android.R.layout.simple_spinner_item,
@@ -74,7 +73,17 @@ public class GraphFragment extends Fragment {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerYear.setAdapter(adapter);
 
-        // Select previously selected year or most recent year
+        if (years.isEmpty()) {
+            chart.setVisibility(View.GONE);
+            tvNoData.setVisibility(View.VISIBLE);
+            spinnerYear.setVisibility(View.GONE);
+            return;
+        } else {
+            chart.setVisibility(View.VISIBLE);
+            tvNoData.setVisibility(View.GONE);
+            spinnerYear.setVisibility(View.VISIBLE);
+        }
+
         int selIndex = years.contains(selectedYear) ? years.indexOf(selectedYear) : years.size() - 1;
         spinnerYear.setSelection(selIndex, false);
 
@@ -88,7 +97,6 @@ public class GraphFragment extends Fragment {
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        // Initial chart update (if needed)
         selectedYear = years.get(spinnerYear.getSelectedItemPosition());
         updateChartForYear(selectedYear);
     }
