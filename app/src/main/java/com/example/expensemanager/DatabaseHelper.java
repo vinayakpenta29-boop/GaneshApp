@@ -43,7 +43,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.insert("transactions", null, values);
     }
 
-    // Fetch all transactions for a given type.
     public ArrayList<Transaction> getAllTransactions(String type) {
         ArrayList<Transaction> list = new ArrayList<>();
         SQLiteDatabase db = getReadableDatabase();
@@ -62,7 +61,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return list;
     }
 
-    // Total for a given type.
     public double getTotalByType(String type) {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT SUM(amount) as total FROM transactions WHERE type=?", new String[]{type});
@@ -74,7 +72,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return total;
     }
 
-    // List all distinct years present in the transactions table (for graph/year filter)
     public List<String> getAllYears() {
         List<String> years = new ArrayList<>();
         SQLiteDatabase db = getReadableDatabase();
@@ -86,7 +83,38 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return years;
     }
 
-    // Grouped monthly totals for chart: incoming as BarEntry lists and month labels
+    // New method for perfectly-aligned monthly graph bars
+    public void getGroupedMonthlyValues(float[] incomeByMonth, float[] expenseByMonth, String year) {
+        // Zero out arrays for all months
+        for (int i = 0; i < 12; i++) {
+            incomeByMonth[i] = 0f;
+            expenseByMonth[i] = 0f;
+        }
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(
+            "SELECT month, " +
+            "SUM(CASE WHEN type='income' THEN amount ELSE 0 END) AS income, " +
+            "SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) AS expense " +
+            "FROM transactions WHERE year=? GROUP BY month ORDER BY CAST(month AS INTEGER)",
+            new String[]{year});
+
+        while (cursor.moveToNext()) {
+            String monthStr = cursor.getString(cursor.getColumnIndex("month"));
+            int monthIdx = -1;
+            try {
+                // Convert month string to integer in range 1..12
+                monthIdx = Integer.parseInt(monthStr) - 1;
+            } catch (Exception ignored) {}
+
+            if (monthIdx >= 0 && monthIdx < 12) {
+                incomeByMonth[monthIdx] = (float) cursor.getDouble(cursor.getColumnIndex("income"));
+                expenseByMonth[monthIdx] = (float) cursor.getDouble(cursor.getColumnIndex("expense"));
+            }
+        }
+        cursor.close();
+    }
+
+    // Old version left for reference; no need to use if you update your fragment as shown:
     public void getGroupedMonthlyEntries(ArrayList<BarEntry> incomeEntries, ArrayList<BarEntry> expenseEntries, ArrayList<String> monthLabels, String year) {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(
@@ -112,7 +140,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // Group all transactions by month for a given type and year (used for display in tabs)
     public Map<String, List<Transaction>> getTransactionsByTypeAndYearGroupedByMonth(String type, String year) {
         Map<String, List<Transaction>> map = new LinkedHashMap<>();
         SQLiteDatabase db = getReadableDatabase();
