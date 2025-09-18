@@ -72,7 +72,7 @@ public class GraphFragment extends Fragment {
             BarChart chart = new BarChart(getContext());
             LinearLayout.LayoutParams chartParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                600 // Height in pixels (adjust as needed)
+                600 // Height in pixels, adjust as needed
             );
             chart.setLayoutParams(chartParams);
             setupChartForYear(chart, year);
@@ -94,23 +94,21 @@ public class GraphFragment extends Fragment {
     }
 
     private void setupChartForYear(BarChart chart, String year) {
-        // The following will ensure perfect alignment for months 1..12:
         ArrayList<BarEntry> incomeEntries = new ArrayList<>();
         ArrayList<BarEntry> expenseEntries = new ArrayList<>();
 
-        // Place a dummy label at index 0 (so month 1 aligns with X=1, month 12 at X=12)
+        // X-axis month labels ("Jan", "Feb", ..., "Dec")
         ArrayList<String> monthLabels = new ArrayList<>();
-        monthLabels.add(""); // for X=0
-        for (int m = 1; m <= 12; m++) monthLabels.add(String.valueOf(m));
+        String[] monthAbbr = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+        for (String m : monthAbbr) monthLabels.add(m);
 
-        // Get the actual data for each month; if you already use indices 0-11 for Jan-Dec use m=1..12 as X
         float[] incomeByMonth = new float[12];
         float[] expenseByMonth = new float[12];
         db.getGroupedMonthlyValues(incomeByMonth, expenseByMonth, year);
 
-        for (int m = 1; m <= 12; m++) {
-            incomeEntries.add(new BarEntry(m, incomeByMonth[m - 1]));
-            expenseEntries.add(new BarEntry(m, expenseByMonth[m - 1]));
+        for (int i = 0; i < 12; i++) {
+            incomeEntries.add(new BarEntry(i, incomeByMonth[i]));
+            expenseEntries.add(new BarEntry(i, expenseByMonth[i]));
         }
 
         BarDataSet incomeSet = new BarDataSet(incomeEntries, "Income");
@@ -119,10 +117,7 @@ public class GraphFragment extends Fragment {
         BarDataSet expenseSet = new BarDataSet(expenseEntries, "Expense");
         expenseSet.setColor(Color.RED);
 
-        float groupSpace = 0.2f;
-        float barSpace = 0.05f; // 2 bars, so 0.2 + 0.05 * 2 + 0.3 * 2 = 1.0
-        float barWidth = 0.3f;
-
+        float groupSpace = 0.2f, barSpace = 0.05f, barWidth = 0.35f;
         BarData barData = new BarData(incomeSet, expenseSet);
         barData.setBarWidth(barWidth);
 
@@ -133,13 +128,11 @@ public class GraphFragment extends Fragment {
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setGranularity(1f);
         xAxis.setLabelCount(12);
-        xAxis.setAxisMinimum(0.5f); // so month 1 is centered at 1
-        xAxis.setAxisMaximum(12.5f);
+        xAxis.setAxisMinimum(-0.5f);
+        xAxis.setAxisMaximum(11.5f);
 
         chart.getAxisLeft().setAxisMinimum(0f);
-
-        // IMPORTANT: groupBars(startX=1f, ...)
-        chart.groupBars(1f, groupSpace, barSpace);
+        chart.groupBars(-0.5f, groupSpace, barSpace);
 
         chart.getDescription().setEnabled(false);
         chart.animateY(1000);
