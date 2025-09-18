@@ -52,4 +52,15 @@
                 android:textColor="#FFB300"/>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
+
+    <!-- CREATED BY RP TEXT BELOW CARD -->
+    <TextView
+        android:id="@+id/tv_created_by"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Created by RP"
+        android:textColor="#D3D3D3"
+        android:textSize="8sp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="20dp" />
 </LinearLayout>
