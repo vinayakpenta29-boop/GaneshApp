@@ -15,7 +15,7 @@ import java.util.Map;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "finance.db";
-    private static final int DATABASE_VERSION = 2; // Bumped version for schema change
+    private static final int DATABASE_VERSION = 2;
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -83,9 +83,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return years;
     }
 
-    // New method for perfectly-aligned monthly graph bars
+    // For monthly-aligned grouped bar charts
     public void getGroupedMonthlyValues(float[] incomeByMonth, float[] expenseByMonth, String year) {
-        // Zero out arrays for all months
         for (int i = 0; i < 12; i++) {
             incomeByMonth[i] = 0f;
             expenseByMonth[i] = 0f;
@@ -102,7 +101,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             String monthStr = cursor.getString(cursor.getColumnIndex("month"));
             int monthIdx = -1;
             try {
-                // Convert month string to integer in range 1..12
                 monthIdx = Integer.parseInt(monthStr) - 1;
             } catch (Exception ignored) {}
 
@@ -114,7 +112,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
     }
 
-    // Old version left for reference; no need to use if you update your fragment as shown:
+    // Optionally, legacy method (can be deleted if not needed anymore)
     public void getGroupedMonthlyEntries(ArrayList<BarEntry> incomeEntries, ArrayList<BarEntry> expenseEntries, ArrayList<String> monthLabels, String year) {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(
