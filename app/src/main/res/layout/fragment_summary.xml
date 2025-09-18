@@ -59,7 +59,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Created by RP"
-        android:textColor="#b58f8f"
+        android:textColor="#22223A"
         android:textSize="8sp"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="20dp" />
