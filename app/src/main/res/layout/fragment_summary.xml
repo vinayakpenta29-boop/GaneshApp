@@ -6,6 +6,25 @@
     android:layout_height="match_parent"
     android:padding="24dp">
 
+    <!-- Toolbar for the three dots menu -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/summary_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        app:title=""
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+
+    <!-- Container for month-wise curved (CardView) boxes generated in fragment -->
+    <LinearLayout
+        android:id="@+id/monthly_cards_container"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"/>
+
+    <!-- If you want a static card as a placeholder, you can leave this, but real content goes above -->
+    <!--
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -52,6 +71,7 @@
                 android:textColor="#FFB300"/>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
+    -->
 
     <!-- CREATED BY RP TEXT BELOW CARD -->
     <TextView
