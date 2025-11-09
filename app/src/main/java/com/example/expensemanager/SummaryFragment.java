@@ -27,7 +27,7 @@ public class SummaryFragment extends Fragment {
         monthlyCardsContainer = view.findViewById(R.id.monthly_cards_container);
 
         Toolbar toolbar = view.findViewById(R.id.summary_toolbar);
-        toolbar.inflateMenu(R.menu.menu_summary); // you need res/menu/menu_summary.xml as shown before
+        toolbar.inflateMenu(R.menu.menu_summary);
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
@@ -89,13 +89,14 @@ public class SummaryFragment extends Fragment {
                 for (int i = 0; i < txns.size(); i++) {
                     Transaction txn = txns.get(i);
                     TextView entry = new TextView(getContext());
-                    entry.setText("₹" + txn.getAmount() + "   " + txn.getNote() + "   " + txn.getDate());
+                    // Changed here: field access, not getters!
+                    entry.setText("₹" + txn.amount + "   " + txn.note + "   " + txn.date);
                     entry.setTextSize(16);
                     entry.setTextColor(0xFF444444);
                     entry.setPadding(0, 8, 0, 8);
                     listLayout.addView(entry);
 
-                    total += txn.getAmount();
+                    total += txn.amount;
 
                     // Add divider unless last entry
                     if (i < txns.size() - 1) {
