@@ -6,31 +6,36 @@
     android:layout_height="match_parent"
     android:padding="24dp">
 
-    <!-- Toolbar for the three dots menu -->
+    <!-- Toolbar for filter (left) and three dots (right) -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/summary_toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@android:color/transparent"
         app:title=""
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
-    <!-- Container for month-wise curved (CardView) boxes generated in fragment -->
-    <LinearLayout
-        android:id="@+id/monthly_cards_container"
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"/>
+        <!-- Spinner for month filter (left-aligned) -->
+        <Spinner
+            android:id="@+id/spinner_month"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:spinnerMode="dropdown"
+            android:paddingStart="4dp"
+            android:paddingEnd="8dp"
+            android:layout_gravity="start|center_vertical"
+            android:dropDownWidth="120dp" />
+    </androidx.appcompat.widget.Toolbar>
 
-    <!-- If you want a static card as a placeholder, you can leave this, but real content goes above -->
-    <!--
+    <!-- Always-visible summary card -->
     <androidx.cardview.widget.CardView
+        android:id="@+id/summary_card"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardCornerRadius="22dp"
         app:cardElevation="4dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginTop="14dp"
+        android:layout_marginBottom="14dp"
         android:backgroundTint="#262651">
 
         <LinearLayout
@@ -68,12 +73,20 @@
                 android:text="Balance: 0"
                 android:textStyle="bold"
                 android:textSize="22sp"
-                android:textColor="#FFB300"/>
+                android:textColor="#FFB300"
+                android:fontFamily="sans-serif-medium"/>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
-    -->
 
-    <!-- CREATED BY RP TEXT BELOW CARD -->
+    <!-- Container for month-wise cards (for the Income/Expenses details by three dots) -->
+    <LinearLayout
+        android:id="@+id/monthly_cards_container"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"/>
+
+    <!-- "Created by RP" footer -->
     <TextView
         android:id="@+id/tv_created_by"
         android:layout_width="wrap_content"
@@ -83,4 +96,5 @@
         android:textSize="8sp"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="20dp" />
+
 </LinearLayout>
