@@ -1,100 +1,115 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
-    android:background="#d3d3d3"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp">
+    android:background="#d3d3d3">
 
-    <!-- Toolbar for filter (left) and three dots (right) -->
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/summary_toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
-        app:title=""
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
-
-        <!-- Spinner for month filter (left-aligned) -->
-        <Spinner
-            android:id="@+id/spinner_month"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:spinnerMode="dropdown"
-            android:paddingStart="4dp"
-            android:paddingEnd="8dp"
-            android:layout_gravity="start|center_vertical"
-            android:dropDownWidth="120dp" />
-    </androidx.appcompat.widget.Toolbar>
-
-    <!-- Always-visible summary card -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/summary_card"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardCornerRadius="22dp"
-        app:cardElevation="4dp"
-        android:layout_marginTop="14dp"
-        android:layout_marginBottom="14dp"
-        android:backgroundTint="#262651">
-
-        <LinearLayout
-            android:orientation="vertical"
-            android:padding="24dp"
-            android:background="@android:color/transparent"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <TextView
-                android:id="@+id/tv_income_total"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Total Income: 0"
-                android:textSize="20sp"
-                android:textColor="@android:color/white"
-                android:paddingBottom="8dp"/>
-            <TextView
-                android:id="@+id/tv_expenses_total"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Total Expenses: 0"
-                android:textSize="20sp"
-                android:textColor="@android:color/white"
-                android:paddingBottom="8dp"/>
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1.5dp"
-                android:background="#444"
-                android:layout_marginBottom="10dp"/>
-            <TextView
-                android:id="@+id/tv_balance"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Balance: 0"
-                android:textStyle="bold"
-                android:textSize="22sp"
-                android:textColor="#FFB300"
-                android:fontFamily="sans-serif-medium"/>
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-
-    <!-- Container for month-wise cards (for the Income/Expenses details by three dots) -->
     <LinearLayout
-        android:id="@+id/monthly_cards_container"
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"/>
+        android:padding="24dp">
 
-    <!-- "Created by RP" footer -->
-    <TextView
-        android:id="@+id/tv_created_by"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Created by RP"
-        android:textColor="#22223A"
-        android:textSize="8sp"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="20dp" />
+        <!-- Toolbar with Month (left), Year (center), and menu (right) -->
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/summary_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            app:title=""
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
-</LinearLayout>
+            <!-- Month filter - start/left -->
+            <Spinner
+                android:id="@+id/spinner_month"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:spinnerMode="dropdown"
+                android:layout_gravity="start|center_vertical"
+                android:paddingStart="4dp"
+                android:paddingEnd="8dp"
+                android:dropDownWidth="120dp" />
+
+            <!-- Year filter - center -->
+            <Spinner
+                android:id="@+id/spinner_year"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:spinnerMode="dropdown"
+                android:layout_gravity="center"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:dropDownWidth="120dp" />
+        </androidx.appcompat.widget.Toolbar>
+
+        <!-- Always-visible summary card -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/summary_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="4dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginBottom="14dp"
+            android:backgroundTint="#262651">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:padding="24dp"
+                android:background="@android:color/transparent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/tv_income_total"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Total Income: 0"
+                    android:textSize="20sp"
+                    android:textColor="@android:color/white"
+                    android:paddingBottom="8dp"/>
+                <TextView
+                    android:id="@+id/tv_expenses_total"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Total Expenses: 0"
+                    android:textSize="20sp"
+                    android:textColor="@android:color/white"
+                    android:paddingBottom="8dp"/>
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1.5dp"
+                    android:background="#444"
+                    android:layout_marginBottom="10dp"/>
+                <TextView
+                    android:id="@+id/tv_balance"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Balance: 0"
+                    android:textStyle="bold"
+                    android:textSize="22sp"
+                    android:textColor="#FFB300"
+                    android:fontFamily="sans-serif-medium"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Container for month-wise cards (for the Income/Expenses details by three dots) -->
+        <LinearLayout
+            android:id="@+id/monthly_cards_container"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"/>
+
+        <!-- "Created by RP" footer -->
+        <TextView
+            android:id="@+id/tv_created_by"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Made by RP"
+            android:textColor="#22223A"
+            android:textSize="8sp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="20dp" />
+
+    </LinearLayout>
+</ScrollView>
