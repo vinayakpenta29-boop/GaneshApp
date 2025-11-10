@@ -9,37 +9,41 @@
         android:layout_height="wrap_content"
         android:padding="24dp">
 
-        <!-- Toolbar with Month (left), Year (center), and menu (right) -->
+        <!-- Filter Row: Month (left), Year (center) -->
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical">
+
+            <Spinner
+                android:id="@+id/spinner_month"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:spinnerMode="dropdown"
+                android:layout_weight="1"
+                android:dropDownWidth="120dp"
+                android:paddingEnd="8dp" />
+
+            <Spinner
+                android:id="@+id/spinner_year"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:spinnerMode="dropdown"
+                android:layout_weight="1"
+                android:dropDownWidth="120dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp" />
+        </LinearLayout>
+
+        <!-- Toolbar for three dots only (no child views in XML) -->
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/summary_toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@android:color/transparent"
             app:title=""
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
-
-            <!-- Month filter - start/left -->
-            <Spinner
-                android:id="@+id/spinner_month"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:spinnerMode="dropdown"
-                android:layout_gravity="start|center_vertical"
-                android:paddingStart="4dp"
-                android:paddingEnd="8dp"
-                android:dropDownWidth="120dp" />
-
-            <!-- Year filter - center -->
-            <Spinner
-                android:id="@+id/spinner_year"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:spinnerMode="dropdown"
-                android:layout_gravity="center"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:dropDownWidth="120dp" />
-        </androidx.appcompat.widget.Toolbar>
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
         <!-- Always-visible summary card -->
         <androidx.cardview.widget.CardView
