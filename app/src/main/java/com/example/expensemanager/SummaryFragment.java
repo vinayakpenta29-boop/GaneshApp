@@ -16,14 +16,16 @@ import android.view.MenuItem;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.ArrayList;
 
 public class SummaryFragment extends Fragment {
     private DatabaseHelper db;
     private LinearLayout monthlyCardsContainer;
-    private String currentType = "income"; // or "expense"
-    private Spinner spinnerMonth;
+    private Spinner spinnerMonth, spinnerYear;
     private TextView tvIncome, tvExpenses, tvBalance;
     private String selectedMonth = "All";
+    private String selectedYear = "All";
+    private String currentType = "income"; // or "expense"
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -32,16 +34,16 @@ public class SummaryFragment extends Fragment {
         db = new DatabaseHelper(getContext());
         monthlyCardsContainer = view.findViewById(R.id.monthly_cards_container);
 
-        // Setup always-on summary box TextViews
+        // Always-on summary box TextViews
         tvIncome = view.findViewById(R.id.tv_income_total);
         tvExpenses = view.findViewById(R.id.tv_expenses_total);
         tvBalance = view.findViewById(R.id.tv_balance);
 
         Toolbar toolbar = view.findViewById(R.id.summary_toolbar);
-        // Add Spinner for month filter (findViewById already works if Spinner is a toolbar child)
         spinnerMonth = view.findViewById(R.id.spinner_month);
+        spinnerYear = view.findViewById(R.id.spinner_year);
 
-        // Month List
+        // Month spinner setup
         final String[] monthLabels = {"All", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
         ArrayAdapter<String> monthAdapter = new ArrayAdapter<>(requireContext(),
                 android.R.layout.simple_spinner_item, monthLabels);
@@ -58,6 +60,26 @@ public class SummaryFragment extends Fragment {
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
+        // Year spinner setup
+        List<String> yearList = new ArrayList<>();
+        yearList.add("All");
+        yearList.addAll(db.getAllYears());
+        ArrayAdapter<String> yearAdapter = new ArrayAdapter<>(requireContext(),
+                android.R.layout.simple_spinner_item, yearList);
+        yearAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerYear.setAdapter(yearAdapter);
+
+        spinnerYear.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View v, int pos, long id) {
+                selectedYear = yearList.get(pos);
+                updateSummaryCard();
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        // Three-dot menu
         toolbar.inflateMenu(R.menu.menu_summary);
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
@@ -75,23 +97,25 @@ public class SummaryFragment extends Fragment {
             }
         });
 
-        // Always show income summary card for selected month by default
+        // Initial load
         updateSummaryCard();
-        // Show all income/expenses month cards (three dots logic)
         updateMonthCards();
         return view;
     }
 
-    // Always visible summary box
+    // Update the always-on summary card
     private void updateSummaryCard() {
-        double income, expenses;
-
-        if (selectedMonth.equals("All")) {
-            // All months, all years
+        double income = 0, expenses = 0;
+        if (selectedYear.equals("All") && selectedMonth.equals("All")) {
             income = db.getTotalByType("income");
             expenses = db.getTotalByType("expense");
-        } else {
-            // For month = selectedMonth (1 for Jan, ... 12 for Dec) **all years**
+        } else if (!selectedYear.equals("All") && selectedMonth.equals("All")) {
+            income = getTotalForYear(selectedYear, "income");
+            expenses = getTotalForYear(selectedYear, "expense");
+        } else if (!selectedYear.equals("All") && !selectedMonth.equals("All")) {
+            income = getTotalForYearMonth(selectedYear, selectedMonth, "income");
+            expenses = getTotalForYearMonth(selectedYear, selectedMonth, "expense");
+        } else if (selectedYear.equals("All") && !selectedMonth.equals("All")) {
             income = getTotalForMonthType(selectedMonth, "income");
             expenses = getTotalForMonthType(selectedMonth, "expense");
         }
@@ -104,24 +128,52 @@ public class SummaryFragment extends Fragment {
         tvBalance.setTypeface(tvBalance.getTypeface(), android.graphics.Typeface.BOLD);
     }
 
-    // Helper function to get sum for a given month and type (across all years)
+    // Helpers for summary card filtering
+    private double getTotalForYear(String year, String type) {
+        double total = 0;
+        Map<String, List<Transaction>> byMonth = db.getTransactionsByTypeAndYearGroupedByMonth(type, year);
+        if (byMonth != null) {
+            for (List<Transaction> txns : byMonth.values()) {
+                for (Transaction txn : txns) total += txn.amount;
+            }
+        }
+        return total;
+    }
+    private double getTotalForYearMonth(String year, String month, String type) {
+        double total = 0;
+        Map<String, List<Transaction>> byMonth = db.getTransactionsByTypeAndYearGroupedByMonth(type, year);
+        List<Transaction> txns = byMonth != null ? byMonth.get(month) : null;
+        if (txns != null) for (Transaction txn : txns) total += txn.amount;
+        return total;
+    }
     private double getTotalForMonthType(String month, String type) {
         double total = 0;
         List<String> years = db.getAllYears();
         for (String year : years) {
             List<Transaction> txns = db.getTransactionsByTypeAndYearGroupedByMonth(type, year).get(month);
             if (txns != null) {
-                for (Transaction txn : txns) {
-                    total += txn.amount;
-                }
+                for (Transaction txn : txns) total += txn.amount;
             }
         }
         return total;
     }
 
-    // Income/Expenses details cards (three dots logic - unchanged)
+    // Three-dots: month cards for Income/Expense (with year/month headers, colored totals, and top heading)
     private void updateMonthCards() {
         monthlyCardsContainer.removeAllViews();
+
+        // Add heading above list (per currentType)
+        TextView heading = new TextView(getContext());
+        heading.setText(currentType.equals("income") ? "Income" : "Expenses");
+        heading.setTextColor(currentType.equals("income") ? 0xFF388E3C : 0xFFF44336); // Green or Red
+        heading.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+        heading.setTextSize(22);
+        heading.setTypeface(null, android.graphics.Typeface.BOLD);
+        LinearLayout.LayoutParams headingParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        headingParams.setMargins(0, 20, 0, 18);
+        monthlyCardsContainer.addView(heading, headingParams);
+
         List<String> years = db.getAllYears();
 
         for (String year : years) {
@@ -129,6 +181,7 @@ public class SummaryFragment extends Fragment {
 
             for (String month : byMonth.keySet()) {
                 List<Transaction> txns = byMonth.get(month);
+                if (txns == null || txns.isEmpty()) continue;
 
                 CardView card = new CardView(getContext());
                 LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
@@ -146,10 +199,13 @@ public class SummaryFragment extends Fragment {
                 listLayout.setPadding(32, 32, 32, 32);
                 listLayout.setBackgroundColor(0xFFF5F5F5);
 
+                // MONTH-YEAR (centered, bold)
                 TextView monthHeading = new TextView(getContext());
                 monthHeading.setText(getMonthLabel(month) + " " + year);
                 monthHeading.setTextSize(18);
                 monthHeading.setTextColor(0xFF22223A);
+                monthHeading.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                monthHeading.setTypeface(null, android.graphics.Typeface.BOLD);
                 monthHeading.setPadding(0, 0, 0, 12);
                 listLayout.addView(monthHeading);
 
@@ -175,12 +231,14 @@ public class SummaryFragment extends Fragment {
                     }
                 }
 
+                // Monthly total (centered, orange, bold)
                 TextView totalTv = new TextView(getContext());
                 totalTv.setText(String.format(Locale.US, "Total: ₹%.2f", total));
                 totalTv.setTextSize(16);
-                totalTv.setTextColor(0xFF22223A);
+                totalTv.setTextColor(0xFFFFB300); // Orange
+                totalTv.setTypeface(null, android.graphics.Typeface.BOLD);
                 totalTv.setPadding(0, 20, 0, 0);
-                totalTv.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_END);
+                totalTv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                 listLayout.addView(totalTv);
 
                 card.addView(listLayout);
