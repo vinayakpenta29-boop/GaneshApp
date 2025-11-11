@@ -1,18 +1,18 @@
 package com.expensemanager;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.text.InputType;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.Spinner;
-import android.widget.TextView;
-import android.widget.ArrayAdapter;
-import android.widget.AdapterView;
+import android.widget.*;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
-import android.view.MenuItem;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -26,6 +26,10 @@ public class SummaryFragment extends Fragment {
     private String selectedMonth = "All";
     private String selectedYear = "All";
     private String currentType = "income"; // or "expense"
+    private FloatingActionButton btnReset;
+    private Handler holdHandler = new Handler();
+    private final int HOLD_TIME = 5000;
+    private boolean isResetHeld = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -33,77 +37,132 @@ public class SummaryFragment extends Fragment {
 
         db = new DatabaseHelper(getContext());
         monthlyCardsContainer = view.findViewById(R.id.monthly_cards_container);
-
-        // Always-on summary box TextViews
         tvIncome = view.findViewById(R.id.tv_income_total);
         tvExpenses = view.findViewById(R.id.tv_expenses_total);
         tvBalance = view.findViewById(R.id.tv_balance);
-
         Toolbar toolbar = view.findViewById(R.id.summary_toolbar);
         spinnerMonth = view.findViewById(R.id.spinner_month);
         spinnerYear = view.findViewById(R.id.spinner_year);
+        btnReset = view.findViewById(R.id.btn_reset);
 
         // Month spinner setup
         final String[] monthLabels = {"All", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-        ArrayAdapter<String> monthAdapter = new ArrayAdapter<>(requireContext(),
-                android.R.layout.simple_spinner_item, monthLabels);
+        ArrayAdapter<String> monthAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, monthLabels);
         monthAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerMonth.setAdapter(monthAdapter);
 
         spinnerMonth.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View v, int pos, long id) {
+            @Override public void onItemSelected(AdapterView<?> parent, View v, int pos, long id) {
                 selectedMonth = (pos == 0) ? "All" : String.valueOf(pos);
                 updateSummaryCard();
             }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
         });
 
         // Year spinner setup
         List<String> yearList = new ArrayList<>();
         yearList.add("All");
         yearList.addAll(db.getAllYears());
-        ArrayAdapter<String> yearAdapter = new ArrayAdapter<>(requireContext(),
-                android.R.layout.simple_spinner_item, yearList);
+        ArrayAdapter<String> yearAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, yearList);
         yearAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerYear.setAdapter(yearAdapter);
 
         spinnerYear.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View v, int pos, long id) {
+            @Override public void onItemSelected(AdapterView<?> parent, View v, int pos, long id) {
                 selectedYear = yearList.get(pos);
                 updateSummaryCard();
             }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        // Three-dot menu
         toolbar.inflateMenu(R.menu.menu_summary);
-        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+        toolbar.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.action_income) {
+                currentType = "income";
+                updateMonthCards();
+                return true;
+            } else if (item.getItemId() == R.id.action_expenses) {
+                currentType = "expense";
+                updateMonthCards();
+                return true;
+            }
+            return false;
+        });
+
+        // Reset FAB logic: hold 5s to trigger erase
+        btnReset.setOnTouchListener(new View.OnTouchListener() {
+            private long startTime;
+            private Runnable progressRunnable;
+
             @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                if (item.getItemId() == R.id.action_income) {
-                    currentType = "income";
-                    updateMonthCards();
-                    return true;
-                } else if (item.getItemId() == R.id.action_expenses) {
-                    currentType = "expense";
-                    updateMonthCards();
-                    return true;
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        isResetHeld = true;
+                        startTime = System.currentTimeMillis();
+                        progressRunnable = new Runnable() {
+                            @Override
+                            public void run() {
+                                if (!isResetHeld) return;
+                                long elapsed = System.currentTimeMillis() - startTime;
+                                float percent = Math.min((float) elapsed / HOLD_TIME, 1f);
+                                btnReset.setAlpha(0.5f + 0.5f * percent);
+                                btnReset.setScaleX(1f + 0.2f * percent);
+                                btnReset.setScaleY(1f + 0.2f * percent);
+                                if (percent < 1f) {
+                                    holdHandler.postDelayed(this, 30);
+                                } else {
+                                    isResetHeld = false;
+                                    btnReset.setAlpha(1f);
+                                    btnReset.setScaleX(1f);
+                                    btnReset.setScaleY(1f);
+                                    showPasswordDialog();
+                                }
+                            }
+                        };
+                        holdHandler.post(progressRunnable);
+                        return true;
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_CANCEL:
+                        isResetHeld = false;
+                        btnReset.setAlpha(1f);
+                        btnReset.setScaleX(1f);
+                        btnReset.setScaleY(1f);
+                        holdHandler.removeCallbacksAndMessages(null);
+                        return true;
                 }
                 return false;
             }
         });
 
-        // Initial load
         updateSummaryCard();
         updateMonthCards();
         return view;
     }
 
-    // Update the always-on summary card
+    private void showPasswordDialog() {
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(requireContext());
+        final EditText input = new EditText(getContext());
+        input.setHint("Enter Password");
+        input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD);
+        dialogBuilder.setTitle("Confirm Reset")
+            .setView(input)
+            .setCancelable(false)
+            .setPositiveButton("OK", (dialog, which) -> {
+                String pass = input.getText().toString();
+                if ("1234".equals(pass)) {
+                    db.clearAllData();
+                    Toast.makeText(getContext(), "All data erased", Toast.LENGTH_SHORT).show();
+                    updateSummaryCard();
+                    updateMonthCards();
+                } else {
+                    Toast.makeText(getContext(), "Incorrect password", Toast.LENGTH_SHORT).show();
+                }
+            })
+            .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+            .show();
+    }
+
     private void updateSummaryCard() {
         double income = 0, expenses = 0;
         if (selectedYear.equals("All") && selectedMonth.equals("All")) {
@@ -120,7 +179,6 @@ public class SummaryFragment extends Fragment {
             expenses = getTotalForMonthType(selectedMonth, "expense");
         }
         double balance = income - expenses;
-
         tvIncome.setText("Total Income: " + String.format(Locale.US, "%.2f", income));
         tvExpenses.setText("Total Expenses: " + String.format(Locale.US, "%.2f", expenses));
         tvBalance.setText("Balance: " + String.format(Locale.US, "%.2f", balance));
@@ -128,7 +186,6 @@ public class SummaryFragment extends Fragment {
         tvBalance.setTypeface(tvBalance.getTypeface(), android.graphics.Typeface.BOLD);
     }
 
-    // Helpers for summary card filtering
     private double getTotalForYear(String year, String type) {
         double total = 0;
         Map<String, List<Transaction>> byMonth = db.getTransactionsByTypeAndYearGroupedByMonth(type, year);
@@ -158,14 +215,11 @@ public class SummaryFragment extends Fragment {
         return total;
     }
 
-    // Three-dots: month cards for Income/Expense (with year/month headers, colored totals, and top heading)
     private void updateMonthCards() {
         monthlyCardsContainer.removeAllViews();
-
-        // Add heading above list (per currentType)
         TextView heading = new TextView(getContext());
         heading.setText(currentType.equals("income") ? "Income" : "Expenses");
-        heading.setTextColor(currentType.equals("income") ? 0xFF388E3C : 0xFFF44336); // Green or Red
+        heading.setTextColor(currentType.equals("income") ? 0xFF388E3C : 0xFFF44336);
         heading.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
         heading.setTextSize(22);
         heading.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -175,14 +229,11 @@ public class SummaryFragment extends Fragment {
         monthlyCardsContainer.addView(heading, headingParams);
 
         List<String> years = db.getAllYears();
-
         for (String year : years) {
             Map<String, List<Transaction>> byMonth = db.getTransactionsByTypeAndYearGroupedByMonth(currentType, year);
-
             for (String month : byMonth.keySet()) {
                 List<Transaction> txns = byMonth.get(month);
                 if (txns == null || txns.isEmpty()) continue;
-
                 CardView card = new CardView(getContext());
                 LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
@@ -218,9 +269,7 @@ public class SummaryFragment extends Fragment {
                     entry.setTextColor(0xFF444444);
                     entry.setPadding(0, 8, 0, 8);
                     listLayout.addView(entry);
-
                     total += txn.amount;
-
                     if (i < txns.size() - 1) {
                         View divider = new View(getContext());
                         LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(
@@ -230,8 +279,6 @@ public class SummaryFragment extends Fragment {
                         listLayout.addView(divider);
                     }
                 }
-
-                // Monthly total (centered, orange, bold)
                 TextView totalTv = new TextView(getContext());
                 totalTv.setText(String.format(Locale.US, "Total: ₹%.2f", total));
                 totalTv.setTextSize(16);
@@ -240,7 +287,6 @@ public class SummaryFragment extends Fragment {
                 totalTv.setPadding(0, 20, 0, 0);
                 totalTv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                 listLayout.addView(totalTv);
-
                 card.addView(listLayout);
                 monthlyCardsContainer.addView(card);
             }
