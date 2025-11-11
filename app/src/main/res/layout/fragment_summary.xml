@@ -116,5 +116,19 @@
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="20dp" />
 
+        <!-- *** Reset Button *** -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btn_reset"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:src="@drawable/ic_reset"         <!-- Use your icon here -->
+            android:layout_gravity="end"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="8dp"
+            android:contentDescription="Reset"
+            app:backgroundTint="#FF5252"
+            app:tint="@android:color/white" />
+
     </LinearLayout>
 </ScrollView>
