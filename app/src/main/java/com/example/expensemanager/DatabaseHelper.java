@@ -83,7 +83,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return years;
     }
 
-    // For monthly-aligned grouped bar charts
+    // For summary and graph aggregations
     public void getGroupedMonthlyValues(float[] incomeByMonth, float[] expenseByMonth, String year) {
         for (int i = 0; i < 12; i++) {
             incomeByMonth[i] = 0f;
@@ -112,7 +112,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
     }
 
-    // Optionally, legacy method (can be deleted if not needed anymore)
+    // Optionally, legacy method for grouped entries
     public void getGroupedMonthlyEntries(ArrayList<BarEntry> incomeEntries, ArrayList<BarEntry> expenseEntries, ArrayList<String> monthLabels, String year) {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(
@@ -158,5 +158,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         cursor.close();
         return map;
+    }
+
+    // --- Add this method for full data wipe/reset ---
+    public void clearAllData() {
+        SQLiteDatabase db = getWritableDatabase();
+        db.delete("transactions", null, null);
     }
 }
