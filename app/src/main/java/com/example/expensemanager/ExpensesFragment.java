@@ -119,6 +119,12 @@ public class ExpensesFragment extends Fragment {
                             InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
                             imm.hideSoftInputFromWindow(etAmount.getWindowToken(), 0);
                             imm.hideSoftInputFromWindow(etNote.getWindowToken(), 0);
+
+                            // --- Notify SummaryFragment to refresh ---
+                            Bundle b = new Bundle();
+                            b.putBoolean("refresh", true);
+                            if (getParentFragmentManager() != null)
+                                getParentFragmentManager().setFragmentResult("refresh_summary", b);
                         }
                     }.execute();
                 })
