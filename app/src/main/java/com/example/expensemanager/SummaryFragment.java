@@ -13,6 +13,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -25,8 +26,9 @@ public class SummaryFragment extends Fragment {
     private TextView tvIncome, tvExpenses, tvBalance;
     private String selectedMonth = "All";
     private String selectedYear = "All";
-    private String currentType = "income"; // or "expense"
+    private String currentType = "income";
     private FloatingActionButton btnReset;
+    private CircularProgressIndicator resetProgress;
     private Handler holdHandler = new Handler();
     private final int HOLD_TIME = 5000;
     private boolean isResetHeld = false;
@@ -44,6 +46,7 @@ public class SummaryFragment extends Fragment {
         spinnerMonth = view.findViewById(R.id.spinner_month);
         spinnerYear = view.findViewById(R.id.spinner_year);
         btnReset = view.findViewById(R.id.btn_reset);
+        resetProgress = view.findViewById(R.id.reset_progress);
 
         // Month spinner setup
         final String[] monthLabels = {"All", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
@@ -89,7 +92,7 @@ public class SummaryFragment extends Fragment {
             return false;
         });
 
-        // Reset FAB logic: hold 5s to trigger erase
+        // Reset FAB logic: hold 5s to trigger erase with animation
         btnReset.setOnTouchListener(new View.OnTouchListener() {
             private long startTime;
             private Runnable progressRunnable;
@@ -100,22 +103,20 @@ public class SummaryFragment extends Fragment {
                     case MotionEvent.ACTION_DOWN:
                         isResetHeld = true;
                         startTime = System.currentTimeMillis();
+                        resetProgress.setVisibility(View.VISIBLE);
+                        resetProgress.setProgress(0);
                         progressRunnable = new Runnable() {
                             @Override
                             public void run() {
                                 if (!isResetHeld) return;
                                 long elapsed = System.currentTimeMillis() - startTime;
-                                float percent = Math.min((float) elapsed / HOLD_TIME, 1f);
-                                btnReset.setAlpha(0.5f + 0.5f * percent);
-                                btnReset.setScaleX(1f + 0.2f * percent);
-                                btnReset.setScaleY(1f + 0.2f * percent);
-                                if (percent < 1f) {
-                                    holdHandler.postDelayed(this, 30);
+                                int percent = (int) Math.min((elapsed * 100) / HOLD_TIME, 100);
+                                resetProgress.setProgress(percent, true);
+                                if (percent < 100) {
+                                    holdHandler.postDelayed(this, 16);
                                 } else {
                                     isResetHeld = false;
-                                    btnReset.setAlpha(1f);
-                                    btnReset.setScaleX(1f);
-                                    btnReset.setScaleY(1f);
+                                    resetProgress.setVisibility(View.GONE);
                                     showPasswordDialog();
                                 }
                             }
@@ -125,9 +126,8 @@ public class SummaryFragment extends Fragment {
                     case MotionEvent.ACTION_UP:
                     case MotionEvent.ACTION_CANCEL:
                         isResetHeld = false;
-                        btnReset.setAlpha(1f);
-                        btnReset.setScaleX(1f);
-                        btnReset.setScaleY(1f);
+                        resetProgress.setVisibility(View.GONE);
+                        resetProgress.setProgress(0, false);
                         holdHandler.removeCallbacksAndMessages(null);
                         return true;
                 }
