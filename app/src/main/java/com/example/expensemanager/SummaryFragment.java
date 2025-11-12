@@ -3,6 +3,7 @@ package com.expensemanager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.InputType;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -59,7 +60,6 @@ public class SummaryFragment extends Fragment {
         ArrayAdapter<String> monthAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, monthLabels);
         monthAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerMonth.setAdapter(monthAdapter);
-
         spinnerMonth.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override public void onItemSelected(AdapterView<?> parent, View v, int pos, long id) {
                 selectedMonth = (pos == 0) ? "All" : String.valueOf(pos);
@@ -75,7 +75,6 @@ public class SummaryFragment extends Fragment {
         ArrayAdapter<String> yearAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, yearList);
         yearAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerYear.setAdapter(yearAdapter);
-
         spinnerYear.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override public void onItemSelected(AdapterView<?> parent, View v, int pos, long id) {
                 selectedYear = yearList.get(pos);
@@ -269,13 +268,45 @@ public class SummaryFragment extends Fragment {
                 double total = 0;
                 for (int i = 0; i < txns.size(); i++) {
                     Transaction txn = txns.get(i);
-                    TextView entry = new TextView(getContext());
-                    entry.setText("₹" + txn.amount + "   " + txn.note + "   " + txn.date);
-                    entry.setTextSize(16);
-                    entry.setTextColor(0xFF444444);
-                    entry.setPadding(0, 8, 0, 8);
-                    listLayout.addView(entry);
+
+                    // Build the entry: Amount (left, bold), Note (center), Date (right, formatted)
+                    LinearLayout entryRow = new LinearLayout(getContext());
+                    entryRow.setOrientation(LinearLayout.HORIZONTAL);
+                    entryRow.setLayoutParams(new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                    entryRow.setPadding(0, 8, 0, 8);
+
+                    // Amount
+                    TextView amountView = new TextView(getContext());
+                    amountView.setText("₹" + txn.amount);
+                    amountView.setTypeface(null, android.graphics.Typeface.BOLD);
+                    amountView.setTextColor(0xFF444444);
+                    amountView.setTextSize(16);
+                    amountView.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.2f));
+
+                    // Note
+                    TextView noteView = new TextView(getContext());
+                    noteView.setText(txn.note);
+                    noteView.setTextColor(0xFF444444);
+                    noteView.setTextSize(16);
+                    noteView.setGravity(Gravity.CENTER_HORIZONTAL);
+                    noteView.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.4f));
+
+                    // Date (DD-MM-YY, no time)
+                    TextView dateView = new TextView(getContext());
+                    dateView.setText(formatDate(txn.date));
+                    dateView.setTextColor(0xFF888888);
+                    dateView.setTextSize(15);
+                    dateView.setGravity(Gravity.END);
+                    dateView.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.2f));
+
+                    entryRow.addView(amountView);
+                    entryRow.addView(noteView);
+                    entryRow.addView(dateView);
+
+                    listLayout.addView(entryRow);
                     total += txn.amount;
+
                     if (i < txns.size() - 1) {
                         View divider = new View(getContext());
                         LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(
@@ -307,5 +338,22 @@ public class SummaryFragment extends Fragment {
             if (month >= 1 && month <= 12) return months[month - 1];
         } catch (Exception ignored) {}
         return "Month";
+    }
+
+    private String formatDate(String dateRaw) {
+        // Accepts "YYYY-MM-DD HH:MM:SS" or "YYYY-MM-DD"
+        try {
+            String[] parts = dateRaw.split(" ");
+            String date = parts[0];
+            String[] ymd = date.split("-");
+            if (ymd.length == 3) {
+                // ymd[0]=YYYY, ymd[1]=MM, ymd[2]=DD
+                String yy = ymd[0].substring(2); // ends with year 2-digits
+                return ymd[2] + "-" + ymd[1] + "-" + yy;
+            }
+        } catch (Exception e) {
+            // fallback to raw if something wrong
+        }
+        return dateRaw;
     }
 }
