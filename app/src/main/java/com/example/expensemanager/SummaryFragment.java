@@ -48,6 +48,12 @@ public class SummaryFragment extends Fragment {
         btnReset = view.findViewById(R.id.btn_reset);
         resetProgress = view.findViewById(R.id.reset_progress);
 
+        // Listen for refresh requests from other fragments
+        getParentFragmentManager().setFragmentResultListener("refresh_summary", this, (key, bundle) -> {
+            updateSummaryCard();
+            updateMonthCards();
+        });
+
         // Month spinner setup
         final String[] monthLabels = {"All", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
         ArrayAdapter<String> monthAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, monthLabels);
