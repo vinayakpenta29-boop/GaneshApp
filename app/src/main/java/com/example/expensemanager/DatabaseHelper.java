@@ -8,10 +8,13 @@ import android.database.Cursor;
 
 import com.github.mikephil.charting.data.BarEntry;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
+import java.util.Date;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "finance.db";
@@ -23,7 +26,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, amount REAL, note TEXT, month TEXT, year TEXT, date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+        // Removed DEFAULT CURRENT_TIMESTAMP, Java will insert the IST date string
+        db.execSQL("CREATE TABLE transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, amount REAL, note TEXT, month TEXT, year TEXT, date TEXT)");
     }
 
     @Override
@@ -40,6 +44,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put("note", note != null ? note : "");
         values.put("month", month);
         values.put("year", year);
+
+        // Use device time in IST for 'date'
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US);
+        sdf.setTimeZone(TimeZone.getTimeZone("Asia/Kolkata")); // IST
+        String now = sdf.format(new Date());
+        values.put("date", now);
+
         db.insert("transactions", null, values);
     }
 
@@ -160,7 +171,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return map;
     }
 
-    // --- Add this method for full data wipe/reset ---
     public void clearAllData() {
         SQLiteDatabase db = getWritableDatabase();
         db.delete("transactions", null, null);
