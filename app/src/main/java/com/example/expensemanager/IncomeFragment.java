@@ -11,22 +11,21 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
-
+import android.widget.*;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class IncomeFragment extends Fragment {
     private DatabaseHelper db;
     private GroupedTransactionAdapter adapter;
     private EditText etMonth, etYear, etAmount, etNote;
+    private Spinner spinnerCategory;
     private String selectedYear = "";
+    private List<String> categories;
+    private ArrayAdapter<String> categoryAdapter;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -39,11 +38,28 @@ public class IncomeFragment extends Fragment {
         etNote = view.findViewById(R.id.et_income_note);
         etMonth = view.findViewById(R.id.et_income_month);
         etYear = view.findViewById(R.id.et_income_year);
+        spinnerCategory = view.findViewById(R.id.spinner_income_category);
         Button btnAdd = view.findViewById(R.id.btn_add_income);
         RecyclerView rv = view.findViewById(R.id.rv_income);
 
         rv.setLayoutManager(new LinearLayoutManager(getContext()));
         rv.setAdapter(adapter);
+
+        // Setup category spinner
+        categories = new ArrayList<>(Arrays.asList("EMI", "BC", "Rent", "Electricity Bill", "Ration", "Other"));
+        categoryAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, categories);
+        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerCategory.setAdapter(categoryAdapter);
+
+        spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View v, int pos, long id) {
+                if (categories.get(pos).equals("Other")) {
+                    showAddCategoryDialog();
+                }
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
+        });
 
         // Allow only valid months (1-12)
         etMonth.setFilters(new InputFilter[]{
@@ -78,6 +94,7 @@ public class IncomeFragment extends Fragment {
             String note = etNote.getText().toString().trim();
             String month = etMonth.getText().toString().trim();
             String year = etYear.getText().toString().trim();
+            String category = spinnerCategory.getSelectedItem().toString();
 
             if (amountStr.isEmpty() || month.isEmpty() || year.isEmpty()) {
                 Toast.makeText(getContext(), "Enter amount, month, and year", Toast.LENGTH_SHORT).show();
@@ -104,7 +121,7 @@ public class IncomeFragment extends Fragment {
                     new AsyncTask<Void, Void, Void>() {
                         @Override
                         protected Void doInBackground(Void... voids) {
-                            db.insertTransaction("income", amount, note, month, year);
+                            db.insertTransaction("income", amount, note, month, year, category);
                             return null;
                         }
                         @Override
@@ -130,6 +147,23 @@ public class IncomeFragment extends Fragment {
         updateList();
 
         return view;
+    }
+
+    private void showAddCategoryDialog() {
+        EditText input = new EditText(getContext());
+        new AlertDialog.Builder(getContext())
+            .setTitle("Add Category")
+            .setView(input)
+            .setPositiveButton("OK", (d, w) -> {
+                String newCat = input.getText().toString().trim();
+                if (!newCat.isEmpty() && !categories.contains(newCat)) {
+                    categories.add(categories.size() - 1, newCat); // Insert before "Other"
+                    categoryAdapter.notifyDataSetChanged();
+                    spinnerCategory.setSelection(categories.indexOf(newCat));
+                }
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
     }
 
     private void updateList() {
