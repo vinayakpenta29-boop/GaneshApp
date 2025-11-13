@@ -18,7 +18,7 @@ import java.util.Date;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "finance.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3; // Bump version
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -26,8 +26,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        // Removed DEFAULT CURRENT_TIMESTAMP, Java will insert the IST date string
-        db.execSQL("CREATE TABLE transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, amount REAL, note TEXT, month TEXT, year TEXT, date TEXT)");
+        db.execSQL("CREATE TABLE transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, amount REAL, note TEXT, month TEXT, year TEXT, category TEXT, date TEXT)");
     }
 
     @Override
@@ -36,7 +35,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public void insertTransaction(String type, double amount, String note, String month, String year) {
+    // Updated to include category
+    public void insertTransaction(String type, double amount, String note, String month, String year, String category) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("type", type);
@@ -44,6 +44,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put("note", note != null ? note : "");
         values.put("month", month);
         values.put("year", year);
+        values.put("category", category);
 
         // Use device time in IST for 'date'
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US);
@@ -52,6 +53,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put("date", now);
 
         db.insert("transactions", null, values);
+    }
+
+    // Overload for old usage - should migrate to always use the 6-arg version
+    public void insertTransaction(String type, double amount, String note, String month, String year) {
+        insertTransaction(type, amount, note, month, year, "Other");
     }
 
     public ArrayList<Transaction> getAllTransactions(String type) {
@@ -64,8 +70,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 String note = cursor.getString(cursor.getColumnIndex("note"));
                 String month = cursor.getString(cursor.getColumnIndex("month"));
                 String year = cursor.getString(cursor.getColumnIndex("year"));
+                String category = cursor.getString(cursor.getColumnIndex("category"));
                 String date = cursor.getString(cursor.getColumnIndex("date"));
-                list.add(new Transaction(type, amount, note, month, year, date));
+                list.add(new Transaction(type, amount, note, month, year, category, date));
             } while (cursor.moveToNext());
         }
         cursor.close();
@@ -149,6 +156,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    // Updated: Each transaction has a category
     public Map<String, List<Transaction>> getTransactionsByTypeAndYearGroupedByMonth(String type, String year) {
         Map<String, List<Transaction>> map = new LinkedHashMap<>();
         SQLiteDatabase db = getReadableDatabase();
@@ -160,8 +168,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             String note = cursor.getString(cursor.getColumnIndex("note"));
             String month = cursor.getString(cursor.getColumnIndex("month"));
             String txnYear = cursor.getString(cursor.getColumnIndex("year"));
+            String category = cursor.getString(cursor.getColumnIndex("category"));
             String date = cursor.getString(cursor.getColumnIndex("date"));
-            Transaction txn = new Transaction(type, amount, note, month, txnYear, date);
+            Transaction txn = new Transaction(type, amount, note, month, txnYear, category, date);
             if (!map.containsKey(month)) {
                 map.put(month, new ArrayList<>());
             }
