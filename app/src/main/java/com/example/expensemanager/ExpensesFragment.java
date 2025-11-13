@@ -4,21 +4,26 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
-import android.text.Editable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +31,9 @@ public class ExpensesFragment extends Fragment {
     private DatabaseHelper db;
     private GroupedTransactionAdapter adapter;
     private EditText etMonth, etYear, etAmount, etNote;
+    private Spinner spinnerCategory;
+    private List<String> categories;
+    private ArrayAdapter<String> categoryAdapter;
     private String selectedYear = "";
 
     @Override
@@ -39,7 +47,7 @@ public class ExpensesFragment extends Fragment {
         etNote = view.findViewById(R.id.et_expense_note);
         etMonth = view.findViewById(R.id.et_expense_month);
         etYear = view.findViewById(R.id.et_expense_year);
-        spinnerCategory = view.findViewById(R.id.spinner_expenses_category);
+        spinnerCategory = view.findViewById(R.id.spinner_expense_category);
         Button btnAdd = view.findViewById(R.id.btn_add_expense);
         RecyclerView rv = view.findViewById(R.id.rv_expenses);
 
@@ -76,8 +84,6 @@ public class ExpensesFragment extends Fragment {
                 }
         });
 
-        // Amount input type already set to decimal in XML
-
         // Filter list whenever Month or Year changes
         TextWatcher filterWatcher = new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -97,6 +103,7 @@ public class ExpensesFragment extends Fragment {
             String note = etNote.getText().toString().trim();
             String month = etMonth.getText().toString().trim();
             String year = etYear.getText().toString().trim();
+            String category = spinnerCategory.getSelectedItem().toString();
 
             if (amountStr.isEmpty() || month.isEmpty() || year.isEmpty()) {
                 Toast.makeText(getContext(), "Enter amount, month, and year", Toast.LENGTH_SHORT).show();
@@ -123,7 +130,7 @@ public class ExpensesFragment extends Fragment {
                     new AsyncTask<Void, Void, Void>() {
                         @Override
                         protected Void doInBackground(Void... voids) {
-                            db.insertTransaction("expense", amount, note, month, year);
+                            db.insertTransaction("expense", amount, note, month, year, category);
                             return null;
                         }
                         @Override
@@ -154,6 +161,23 @@ public class ExpensesFragment extends Fragment {
         updateList();
 
         return view;
+    }
+
+    private void showAddCategoryDialog() {
+        EditText input = new EditText(getContext());
+        new AlertDialog.Builder(getContext())
+            .setTitle("Add Category")
+            .setView(input)
+            .setPositiveButton("OK", (d, w) -> {
+                String newCat = input.getText().toString().trim();
+                if (!newCat.isEmpty() && !categories.contains(newCat)) {
+                    categories.add(categories.size() - 1, newCat); // Insert before "Other"
+                    categoryAdapter.notifyDataSetChanged();
+                    spinnerCategory.setSelection(categories.indexOf(newCat));
+                }
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
     }
 
     private void updateList() {
