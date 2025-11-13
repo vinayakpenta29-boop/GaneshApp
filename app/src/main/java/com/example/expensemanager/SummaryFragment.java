@@ -15,10 +15,7 @@ import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.ArrayList;
+import java.util.*;
 
 public class SummaryFragment extends Fragment {
     private DatabaseHelper db;
@@ -28,6 +25,7 @@ public class SummaryFragment extends Fragment {
     private String selectedMonth = "All";
     private String selectedYear = "All";
     private String currentType = "income";
+    private String currentCategoryFilter = null;
     private FloatingActionButton btnReset;
     private CircularProgressIndicator resetProgress;
     private Handler holdHandler = new Handler();
@@ -55,7 +53,7 @@ public class SummaryFragment extends Fragment {
             updateMonthCards();
         });
 
-        // Month spinner setup
+        // Month spinner setup and listener
         final String[] monthLabels = {"All", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
         ArrayAdapter<String> monthAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, monthLabels);
         monthAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -68,7 +66,7 @@ public class SummaryFragment extends Fragment {
             @Override public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        // Year spinner setup
+        // Year spinner setup and listener
         List<String> yearList = new ArrayList<>();
         yearList.add("All");
         yearList.addAll(db.getAllYears());
@@ -87,11 +85,16 @@ public class SummaryFragment extends Fragment {
         toolbar.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == R.id.action_income) {
                 currentType = "income";
+                currentCategoryFilter = null;
                 updateMonthCards();
                 return true;
             } else if (item.getItemId() == R.id.action_expenses) {
                 currentType = "expense";
+                currentCategoryFilter = null;
                 updateMonthCards();
+                return true;
+            } else if (item.getItemId() == R.id.action_category) {
+                showCategoryFilterDialog();
                 return true;
             }
             return false;
@@ -145,27 +148,28 @@ public class SummaryFragment extends Fragment {
         return view;
     }
 
-    private void showPasswordDialog() {
-        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(requireContext());
-        final EditText input = new EditText(getContext());
-        input.setHint("Enter Password");
-        input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD);
-        dialogBuilder.setTitle("Confirm Reset")
-            .setView(input)
-            .setCancelable(false)
-            .setPositiveButton("OK", (dialog, which) -> {
-                String pass = input.getText().toString();
-                if ("1234".equals(pass)) {
-                    db.clearAllData();
-                    Toast.makeText(getContext(), "All data erased", Toast.LENGTH_SHORT).show();
-                    updateSummaryCard();
-                    updateMonthCards();
-                } else {
-                    Toast.makeText(getContext(), "Incorrect password", Toast.LENGTH_SHORT).show();
-                }
-            })
-            .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
-            .show();
+    private void showCategoryFilterDialog() {
+        // Get all used categories for current type
+        ArrayList<Transaction> all = db.getAllTransactions(currentType);
+        Set<String> categories = new LinkedHashSet<>();
+        for (Transaction t : all) {
+            if (t.category != null && !t.category.trim().isEmpty()) categories.add(t.category);
+        }
+        final List<String> categoryList = new ArrayList<>(categories);
+        if (categoryList.isEmpty()) {
+            Toast.makeText(getContext(), "No categories found.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String[] categoryArr = categoryList.toArray(new String[0]);
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Select Category");
+        builder.setItems(categoryArr, (dialog, which) -> {
+            currentCategoryFilter = categoryList.get(which);
+            updateCategoryGroup();
+        });
+        builder.setNegativeButton("Cancel", null);
+        builder.show();
     }
 
     private void updateSummaryCard() {
@@ -221,6 +225,8 @@ public class SummaryFragment extends Fragment {
     }
 
     private void updateMonthCards() {
+        // Normal monthly grouping
+        currentCategoryFilter = null;
         monthlyCardsContainer.removeAllViews();
         TextView heading = new TextView(getContext());
         heading.setText(currentType.equals("income") ? "Income" : "Expenses");
@@ -269,14 +275,13 @@ public class SummaryFragment extends Fragment {
                 for (int i = 0; i < txns.size(); i++) {
                     Transaction txn = txns.get(i);
 
-                    // Build the entry: Amount (left, bold), Note (center), Date (right, formatted), category available in txn.category
                     LinearLayout entryRow = new LinearLayout(getContext());
                     entryRow.setOrientation(LinearLayout.HORIZONTAL);
                     entryRow.setLayoutParams(new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
                     entryRow.setPadding(0, 8, 0, 8);
 
-                    // Amount
+                    // Amount (bold)
                     TextView amountView = new TextView(getContext());
                     amountView.setText("₹" + txn.amount);
                     amountView.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -284,7 +289,7 @@ public class SummaryFragment extends Fragment {
                     amountView.setTextSize(16);
                     amountView.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.2f));
 
-                    // Note
+                    // Note (center)
                     TextView noteView = new TextView(getContext());
                     noteView.setText(txn.note);
                     noteView.setTextColor(0xFF444444);
@@ -292,7 +297,7 @@ public class SummaryFragment extends Fragment {
                     noteView.setGravity(Gravity.CENTER_HORIZONTAL);
                     noteView.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.4f));
 
-                    // Date (DD-MM-YY, no time)
+                    // Date (DD-MM-YY)
                     TextView dateView = new TextView(getContext());
                     dateView.setText(formatDate(txn.date));
                     dateView.setTextColor(0xFF888888);
@@ -319,7 +324,7 @@ public class SummaryFragment extends Fragment {
                 TextView totalTv = new TextView(getContext());
                 totalTv.setText(String.format(Locale.US, "Total: ₹%.2f", total));
                 totalTv.setTextSize(16);
-                totalTv.setTextColor(0xFFFFB300); // Orange
+                totalTv.setTextColor(0xFFFFB300);
                 totalTv.setTypeface(null, android.graphics.Typeface.BOLD);
                 totalTv.setPadding(0, 20, 0, 0);
                 totalTv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
@@ -327,6 +332,161 @@ public class SummaryFragment extends Fragment {
                 card.addView(listLayout);
                 monthlyCardsContainer.addView(card);
             }
+        }
+    }
+
+    // Show entries grouped and filtered by category
+    private void updateCategoryGroup() {
+        if (currentCategoryFilter == null) {
+            updateMonthCards();
+            return;
+        }
+
+        monthlyCardsContainer.removeAllViews();
+
+        // Category Header
+        TextView heading = new TextView(getContext());
+        heading.setText(currentCategoryFilter);
+        heading.setTextColor(0xFF262651);
+        heading.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+        heading.setTextSize(22);
+        heading.setTypeface(null, android.graphics.Typeface.BOLD);
+        LinearLayout.LayoutParams headingParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        headingParams.setMargins(0, 20, 0, 18);
+        monthlyCardsContainer.addView(heading, headingParams);
+
+        // Get all transactions by month+year, filtered by selected category+type
+        List<String> years = db.getAllYears();
+        Map<String, Map<String, List<Transaction>>> categoryGrouped = new LinkedHashMap<>();
+        for (String year : years) {
+            Map<String, List<Transaction>> byMonth = db.getTransactionsByTypeAndYearGroupedByMonth(currentType, year);
+            for (String month : byMonth.keySet()) {
+                List<Transaction> txnsForMonth = byMonth.get(month);
+                for (Transaction txn : txnsForMonth) {
+                    if (txn.category != null && txn.category.equals(currentCategoryFilter)) {
+                        if (!categoryGrouped.containsKey(year))
+                            categoryGrouped.put(year, new LinkedHashMap<>());
+                        if (!categoryGrouped.get(year).containsKey(month))
+                            categoryGrouped.get(year).put(month, new ArrayList<>());
+                        categoryGrouped.get(year).get(month).add(txn);
+                    }
+                }
+            }
+        }
+
+        double allTotal = 0;
+
+        for (String year : categoryGrouped.keySet()) {
+            Map<String, List<Transaction>> monthsMap = categoryGrouped.get(year);
+            for (String month : monthsMap.keySet()) {
+                List<Transaction> txns = monthsMap.get(month);
+                if (txns == null || txns.isEmpty()) continue;
+
+                CardView card = new CardView(getContext());
+                LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                );
+                cardParams.setMargins(0, 0, 0, 32);
+                card.setLayoutParams(cardParams);
+                card.setRadius(32);
+                card.setCardElevation(6);
+                card.setUseCompatPadding(true);
+
+                LinearLayout listLayout = new LinearLayout(getContext());
+                listLayout.setOrientation(LinearLayout.VERTICAL);
+                listLayout.setPadding(32, 32, 32, 32);
+                listLayout.setBackgroundColor(0xFFF5F5F5);
+
+                // Month-Year header
+                TextView monthHeading = new TextView(getContext());
+                monthHeading.setText(getMonthLabel(month) + " " + year);
+                monthHeading.setTextSize(18);
+                monthHeading.setTextColor(0xFF22223A);
+                monthHeading.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                monthHeading.setTypeface(null, android.graphics.Typeface.BOLD);
+                monthHeading.setPadding(0, 0, 0, 12);
+                listLayout.addView(monthHeading);
+
+                double monthlyTotal = 0;
+                for (int i = 0; i < txns.size(); i++) {
+                    Transaction txn = txns.get(i);
+
+                    LinearLayout entryRow = new LinearLayout(getContext());
+                    entryRow.setOrientation(LinearLayout.HORIZONTAL);
+                    entryRow.setLayoutParams(new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                    entryRow.setPadding(0, 8, 0, 8);
+
+                    // Amount
+                    TextView amountView = new TextView(getContext());
+                    amountView.setText("₹" + txn.amount);
+                    amountView.setTypeface(null, android.graphics.Typeface.BOLD);
+                    amountView.setTextColor(0xFF444444);
+                    amountView.setTextSize(16);
+                    amountView.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.2f));
+
+                    // Note
+                    TextView noteView = new TextView(getContext());
+                    noteView.setText(txn.note);
+                    noteView.setTextColor(0xFF444444);
+                    noteView.setTextSize(16);
+                    noteView.setGravity(Gravity.CENTER_HORIZONTAL);
+                    noteView.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.4f));
+
+                    // Date (DD-MM-YY)
+                    TextView dateView = new TextView(getContext());
+                    dateView.setText(formatDate(txn.date));
+                    dateView.setTextColor(0xFF888888);
+                    dateView.setTextSize(15);
+                    dateView.setGravity(Gravity.END);
+                    dateView.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.2f));
+
+                    entryRow.addView(amountView);
+                    entryRow.addView(noteView);
+                    entryRow.addView(dateView);
+
+                    listLayout.addView(entryRow);
+                    monthlyTotal += txn.amount;
+
+                    if (i < txns.size() - 1) {
+                        View divider = new View(getContext());
+                        LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT, 1);
+                        divider.setLayoutParams(dividerParams);
+                        divider.setBackgroundColor(0x33000000);
+                        listLayout.addView(divider);
+                    }
+                }
+                TextView totalTv = new TextView(getContext());
+                totalTv.setText(String.format(Locale.US, "Total: ₹%.2f", monthlyTotal));
+                totalTv.setTextSize(16);
+                totalTv.setTextColor(0xFFFFB300);
+                totalTv.setTypeface(null, android.graphics.Typeface.BOLD);
+                totalTv.setPadding(0, 16, 0, 0);
+                totalTv.setGravity(Gravity.CENTER_HORIZONTAL);
+                listLayout.addView(totalTv);
+
+                card.addView(listLayout);
+                monthlyCardsContainer.addView(card);
+
+                allTotal += monthlyTotal;
+            }
+        }
+
+        // Optionally show All Total at end:
+        if (!categoryGrouped.isEmpty()) {
+            TextView totalsHeading = new TextView(getContext());
+            totalsHeading.setText(String.format(Locale.US, "Total (%s): ₹%.2f", currentCategoryFilter, allTotal));
+            totalsHeading.setTextColor(0xFFFFB300);
+            totalsHeading.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+            totalsHeading.setTextSize(17);
+            totalsHeading.setTypeface(null, android.graphics.Typeface.BOLD);
+            LinearLayout.LayoutParams totalParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            totalParams.setMargins(0, 0, 0, 26);
+            monthlyCardsContainer.addView(totalsHeading, totalParams);
         }
     }
 
