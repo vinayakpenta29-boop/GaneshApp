@@ -6,7 +6,8 @@
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
         <LinearLayout
             android:orientation="vertical"
@@ -38,7 +39,7 @@
                     android:layout_weight="1"
                     android:dropDownWidth="120dp"
                     android:paddingStart="8dp"
-                    android:paddingEnd="8dp" />
+                    android:paddingEnd="8dp"/>
             </LinearLayout>
 
             <!-- Toolbar for three dots only (no child views in XML) -->
@@ -109,49 +110,54 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"/>
 
-            <!-- "Created by RP" footer -->
-            <TextView
-                android:id="@+id/tv_created_by"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Made by RP"
-                android:textColor="#22223A"
-                android:textSize="8sp"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="20dp" />
-
+            <!-- Spacer: empty view for avoiding overlap with FAB, value matches FAB+margin height -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="100dp"/>
         </LinearLayout>
     </ScrollView>
 
     <!-- Overlay: Centered at the bottom of the screen -->
-    <FrameLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="bottom|center_horizontal">
-
-        <com.google.android.material.progressindicator.CircularProgressIndicator
-            android:id="@+id/reset_progress"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
-            android:layout_gravity="bottom|center_horizontal"
-            android:layout_marginBottom="36dp"
-            app:trackThickness="6dp"
-            app:indicatorSize="72dp"
-            app:indicatorColor="#FF5252"
-            app:trackColor="#33FF5252"
-            app:indicatorInset="0dp"
-            android:visibility="gone" />
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:paddingBottom="12dp">
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/btn_reset"
             android:layout_width="56dp"
             android:layout_height="56dp"
-            android:layout_gravity="bottom|center_horizontal"
-            android:layout_marginBottom="44dp"
+            android:layout_gravity="center_horizontal"
             android:src="@drawable/ic_reset"
             android:contentDescription="Reset"
             app:backgroundTint="#FF5252"
-            app:tint="@android:color/white" />
-    </FrameLayout>
+            app:tint="@android:color/white"
+            android:layout_marginBottom="4dp"/>
 
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/reset_progress"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_gravity="center_horizontal"
+            app:trackThickness="6dp"
+            app:indicatorSize="56dp"
+            app:indicatorColor="#FF5252"
+            app:trackColor="#33FF5252"
+            app:indicatorInset="0dp"
+            android:visibility="gone"
+            android:layout_marginTop="-60dp"/>
+        <!-- Made by RP just above the FAB -->
+        <TextView
+            android:id="@+id/tv_created_by"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Made by RP"
+            android:textColor="#22223A"
+            android:textSize="8sp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"/>
+    </LinearLayout>
 </FrameLayout>
