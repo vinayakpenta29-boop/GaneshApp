@@ -269,7 +269,7 @@ public class SummaryFragment extends Fragment {
                 for (int i = 0; i < txns.size(); i++) {
                     Transaction txn = txns.get(i);
 
-                    // Build the entry: Amount (left, bold), Note (center), Date (right, formatted)
+                    // Build the entry: Amount (left, bold), Note (center), Date (right, formatted), category available in txn.category
                     LinearLayout entryRow = new LinearLayout(getContext());
                     entryRow.setOrientation(LinearLayout.HORIZONTAL);
                     entryRow.setLayoutParams(new LinearLayout.LayoutParams(
