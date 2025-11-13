@@ -502,7 +502,7 @@ public class SummaryFragment extends Fragment {
         if (!categoryGrouped.isEmpty()) {
             TextView totalsHeading = new TextView(getContext());
             totalsHeading.setText(String.format(Locale.US, "Total (%s): ₹%.2f", currentCategoryFilter, allTotal));
-            totalsHeading.setTextColor(0xFFFFB300);
+            totalsHeading.setTextColor(0xFF388E3C);
             totalsHeading.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
             totalsHeading.setTextSize(17);
             totalsHeading.setTypeface(null, android.graphics.Typeface.BOLD);
