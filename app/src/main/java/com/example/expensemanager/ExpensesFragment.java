@@ -39,11 +39,28 @@ public class ExpensesFragment extends Fragment {
         etNote = view.findViewById(R.id.et_expense_note);
         etMonth = view.findViewById(R.id.et_expense_month);
         etYear = view.findViewById(R.id.et_expense_year);
+        spinnerCategory = view.findViewById(R.id.spinner_expenses_category);
         Button btnAdd = view.findViewById(R.id.btn_add_expense);
         RecyclerView rv = view.findViewById(R.id.rv_expenses);
 
         rv.setLayoutManager(new LinearLayoutManager(getContext()));
         rv.setAdapter(adapter);
+
+        // Setup category spinner
+        categories = new ArrayList<>(Arrays.asList("EMI", "BC", "Rent", "Electricity Bill", "Ration", "Other"));
+        categoryAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, categories);
+        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerCategory.setAdapter(categoryAdapter);
+
+        spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View v, int pos, long id) {
+                if (categories.get(pos).equals("Other")) {
+                    showAddCategoryDialog();
+                }
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
+        });
 
         // Month only allows 1-12 numbers
         etMonth.setFilters(new InputFilter[]{
