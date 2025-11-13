@@ -148,6 +148,29 @@ public class SummaryFragment extends Fragment {
         return view;
     }
 
+    private void showPasswordDialog() {
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(requireContext());
+        final EditText input = new EditText(getContext());
+        input.setHint("Enter Password");
+        input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD);
+        dialogBuilder.setTitle("Confirm Reset")
+            .setView(input)
+            .setCancelable(false)
+            .setPositiveButton("OK", (dialog, which) -> {
+                String pass = input.getText().toString();
+                if ("1234".equals(pass)) {
+                    db.clearAllData();
+                    Toast.makeText(getContext(), "All data erased", Toast.LENGTH_SHORT).show();
+                    updateSummaryCard();
+                    updateMonthCards();
+                } else {
+                    Toast.makeText(getContext(), "Incorrect password", Toast.LENGTH_SHORT).show();
+                }
+            })
+            .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+            .show();
+    }
+    
     private void showCategoryFilterDialog() {
         // Get all used categories for current type
         ArrayList<Transaction> all = db.getAllTransactions(currentType);
