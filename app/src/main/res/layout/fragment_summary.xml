@@ -1,12 +1,14 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#d3d3d3">
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:fillViewport="true">
 
         <LinearLayout
@@ -42,7 +44,6 @@
                     android:paddingEnd="8dp"/>
             </LinearLayout>
 
-            <!-- Toolbar for three dots only (no child views in XML) -->
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/summary_toolbar"
                 android:layout_width="match_parent"
@@ -51,7 +52,6 @@
                 app:title=""
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
-            <!-- Always-visible summary card -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/summary_card"
                 android:layout_width="match_parent"
@@ -102,7 +102,6 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Container for month-wise cards (for the Income/Expenses details by three dots) -->
             <LinearLayout
                 android:id="@+id/monthly_cards_container"
                 android:orientation="vertical"
@@ -110,46 +109,52 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"/>
 
-            <!-- Spacer: empty view for avoiding overlap with FAB, value matches FAB+margin height -->
+            <!-- Spacer: Ensures space at bottom for the FAB+progress+footer text -->
             <View
                 android:layout_width="match_parent"
-                android:layout_height="100dp"/>
+                android:layout_height="120dp"/>
         </LinearLayout>
     </ScrollView>
 
-    <!-- Overlay: Centered at the bottom of the screen -->
+    <!-- Absolute bottom: Frame for progress around FAB, and the footer text -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
         android:orientation="vertical"
         android:gravity="center_horizontal"
-        android:paddingBottom="12dp">
+        android:layout_gravity="bottom">
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/btn_reset"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+        <!-- FAB+Animation ring perfectly centered -->
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:src="@drawable/ic_reset"
-            android:contentDescription="Reset"
-            app:backgroundTint="#FF5252"
-            app:tint="@android:color/white"
-            android:layout_marginBottom="4dp"/>
+            android:layout_marginTop="6dp">
 
-        <com.google.android.material.progressindicator.CircularProgressIndicator
-            android:id="@+id/reset_progress"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_gravity="center_horizontal"
-            app:trackThickness="6dp"
-            app:indicatorSize="56dp"
-            app:indicatorColor="#FF5252"
-            app:trackColor="#33FF5252"
-            app:indicatorInset="0dp"
-            android:visibility="gone"
-            android:layout_marginTop="-60dp"/>
-        <!-- Made by RP just above the FAB -->
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/reset_progress"
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:layout_gravity="center"
+                app:trackThickness="6dp"
+                app:indicatorSize="72dp"
+                app:indicatorColor="#FF5252"
+                app:trackColor="#33FF5252"
+                app:indicatorInset="0dp"
+                android:visibility="gone" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/btn_reset"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_reset"
+                android:contentDescription="Reset"
+                app:backgroundTint="#FF5252"
+                app:tint="@android:color/white" />
+        </FrameLayout>
+
+        <!-- Footer label fixed at very bottom, never overlaps cards -->
         <TextView
             android:id="@+id/tv_created_by"
             android:layout_width="wrap_content"
@@ -158,6 +163,7 @@
             android:textColor="#22223A"
             android:textSize="8sp"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="16dp"/>
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"/>
     </LinearLayout>
-</FrameLayout>
+</LinearLayout>
