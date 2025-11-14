@@ -24,7 +24,7 @@ public class SummaryFragment extends Fragment {
     private TextView tvIncome, tvExpenses, tvBalance;
     private String selectedMonth = "All";
     private String selectedYear = "All";
-    private String currentType = "income";
+    private String currentType = null; // No default: only show on selection
     private String currentCategoryFilter = null;
     private FloatingActionButton btnReset;
     private CircularProgressIndicator resetProgress;
@@ -170,9 +170,12 @@ public class SummaryFragment extends Fragment {
             .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
             .show();
     }
-    
+
     private void showCategoryFilterDialog() {
-        // Get all used categories for current type
+        if (currentType == null) {
+            Toast.makeText(getContext(), "Select Income or Expenses first", Toast.LENGTH_SHORT).show();
+            return;
+        }
         ArrayList<Transaction> all = db.getAllTransactions(currentType);
         Set<String> categories = new LinkedHashSet<>();
         for (Transaction t : all) {
@@ -248,9 +251,14 @@ public class SummaryFragment extends Fragment {
     }
 
     private void updateMonthCards() {
-        // Normal monthly grouping
-        currentCategoryFilter = null;
         monthlyCardsContainer.removeAllViews();
+
+        if (currentType == null) {
+            // Don't show any Income/Expenses entry cards until picked by user
+            return;
+        }
+
+        currentCategoryFilter = null;
         TextView heading = new TextView(getContext());
         heading.setText(currentType.equals("income") ? "Income" : "Expenses");
         heading.setTextColor(currentType.equals("income") ? 0xFF388E3C : 0xFFF44336);
@@ -524,19 +532,15 @@ public class SummaryFragment extends Fragment {
     }
 
     private String formatDate(String dateRaw) {
-        // Accepts "YYYY-MM-DD HH:MM:SS" or "YYYY-MM-DD"
         try {
             String[] parts = dateRaw.split(" ");
             String date = parts[0];
             String[] ymd = date.split("-");
             if (ymd.length == 3) {
-                // ymd[0]=YYYY, ymd[1]=MM, ymd[2]=DD
-                String yy = ymd[0].substring(2); // ends with year 2-digits
+                String yy = ymd[0].substring(2);
                 return ymd[2] + "-" + ymd[1] + "-" + yy;
             }
-        } catch (Exception e) {
-            // fallback to raw if something wrong
-        }
+        } catch (Exception e) {}
         return dateRaw;
     }
 }
