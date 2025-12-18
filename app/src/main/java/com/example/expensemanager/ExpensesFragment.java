@@ -36,6 +36,7 @@ public class ExpensesFragment extends Fragment {
     private List<String> categories;
     private ArrayAdapter<String> categoryAdapter;
     private String selectedYear = "";
+    private String selectedBcId = null;   // which BC this expense belongs to (if any)
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -59,7 +60,7 @@ public class ExpensesFragment extends Fragment {
         // Load BC data once
         BcStore.load(requireContext());
 
-        // Three dots menu for BC
+        // Three dots menu for BC (Add BC / View BC List)
         ivMenu.setOnClickListener(v -> BcUiHelper.showBcMenu(ExpensesFragment.this, ivMenu));
 
         // Setup category spinner
@@ -71,8 +72,17 @@ public class ExpensesFragment extends Fragment {
         spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View v, int pos, long id) {
-                if (categories.get(pos).equals("Other")) {
+                String cat = categories.get(pos);
+                if ("Other".equals(cat)) {
                     showAddCategoryDialog();
+                    selectedBcId = null;
+                } else if ("BC".equals(cat)) {
+                    // Ask which BC scheme this expense belongs to
+                    BcUiHelper.showSelectBcDialog(ExpensesFragment.this, bcId -> {
+                        selectedBcId = bcId;
+                    });
+                } else {
+                    selectedBcId = null;
                 }
             }
             @Override public void onNothingSelected(AdapterView<?> parent) {}
@@ -138,7 +148,14 @@ public class ExpensesFragment extends Fragment {
                     new AsyncTask<Void, Void, Void>() {
                         @Override
                         protected Void doInBackground(Void... voids) {
-                            db.insertTransaction("expense", amount, note, month, year, category);
+                            // Insert with category and BC id
+                            db.insertTransaction("expense", amount, note, month, year, category, selectedBcId);
+
+                            // If this expense belongs to a BC scheme, mark one installment done
+                            if ("BC".equals(category) && selectedBcId != null) {
+                                BcStore.markBcInstallmentDone(selectedBcId, null);
+                                BcStore.save(requireContext());
+                            }
                             return null;
                         }
                         @Override
