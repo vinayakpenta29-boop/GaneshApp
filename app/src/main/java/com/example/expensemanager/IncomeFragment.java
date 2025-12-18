@@ -154,7 +154,7 @@ public class IncomeFragment extends Fragment {
                             @Override
                             protected Void doInBackground(Void... voids) {
                                 // Insert with category and BC id (db must support bcId)
-                                db.insertTransaction("income", amount, note, month, year, category, selectedBcId);
+                                db.insertTransaction("income", amount, note, month, year, category);
 
                                 // If this income belongs to a BC scheme, mark one installment done
                                 if ("BC".equals(category) && selectedBcId != null) {
