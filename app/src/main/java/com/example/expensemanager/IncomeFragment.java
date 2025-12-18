@@ -11,23 +11,30 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.LinkedHashMap;
 
 public class IncomeFragment extends Fragment {
     private DatabaseHelper db;
     private GroupedTransactionAdapter adapter;
     private EditText etMonth, etYear, etAmount, etNote;
+    private Spinner spinnerCategory;
+    private List<String> categories;
+    private ArrayAdapter<String> categoryAdapter;
     private String selectedYear = "";
 
     @Override
@@ -41,6 +48,7 @@ public class IncomeFragment extends Fragment {
         etNote = view.findViewById(R.id.et_income_note);
         etMonth = view.findViewById(R.id.et_income_month);
         etYear = view.findViewById(R.id.et_income_year);
+        spinnerCategory = view.findViewById(R.id.spinner_income_category);
         Button btnAdd = view.findViewById(R.id.btn_add_income);
         RecyclerView rv = view.findViewById(R.id.rv_income);
         ImageView ivMenu = view.findViewById(R.id.iv_income_menu);
@@ -53,6 +61,22 @@ public class IncomeFragment extends Fragment {
 
         // Three dots menu for BC
         ivMenu.setOnClickListener(v -> BcUiHelper.showBcMenu(IncomeFragment.this, ivMenu));
+
+        // Setup category spinner (same list as expenses)
+        categories = new ArrayList<>(Arrays.asList("EMI", "BC", "Rent", "Electricity Bill", "Ration", "Other"));
+        categoryAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, categories);
+        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerCategory.setAdapter(categoryAdapter);
+
+        spinnerCategory.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, View v, int pos, long id) {
+                if (categories.get(pos).equals("Other")) {
+                    showAddCategoryDialog();
+                }
+            }
+            @Override public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+        });
 
         // Allow only valid months (1-12)
         etMonth.setFilters(new InputFilter[]{
@@ -89,6 +113,9 @@ public class IncomeFragment extends Fragment {
             String note = etNote.getText().toString().trim();
             String month = etMonth.getText().toString().trim();
             String year = etYear.getText().toString().trim();
+            String category = spinnerCategory.getSelectedItem() != null
+                    ? spinnerCategory.getSelectedItem().toString()
+                    : "";
 
             if (amountStr.isEmpty() || month.isEmpty() || year.isEmpty()) {
                 Toast.makeText(getContext(), "Enter amount, month, and year", Toast.LENGTH_SHORT).show();
@@ -115,7 +142,8 @@ public class IncomeFragment extends Fragment {
                         new AsyncTask<Void, Void, Void>() {
                             @Override
                             protected Void doInBackground(Void... voids) {
-                                db.insertTransaction("income", amount, note, month, year);
+                                // Overload with category (same as expenses)
+                                db.insertTransaction("income", amount, note, month, year, category);
                                 return null;
                             }
 
@@ -146,11 +174,29 @@ public class IncomeFragment extends Fragment {
         return view;
     }
 
+    private void showAddCategoryDialog() {
+        EditText input = new EditText(getContext());
+        new AlertDialog.Builder(getContext())
+                .setTitle("Add Category")
+                .setView(input)
+                .setPositiveButton("OK", (d, w) -> {
+                    String newCat = input.getText().toString().trim();
+                    if (!newCat.isEmpty() && !categories.contains(newCat)) {
+                        categories.add(categories.size() - 1, newCat); // before "Other"
+                        categoryAdapter.notifyDataSetChanged();
+                        spinnerCategory.setSelection(categories.indexOf(newCat));
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
     private void updateList() {
         String month = etMonth.getText().toString().trim();
         String year = etYear.getText().toString().trim();
         if (!month.isEmpty() && !year.isEmpty()) {
-            Map<String, List<Transaction>> grouped = db.getTransactionsByTypeAndYearGroupedByMonth("income", year);
+            Map<String, List<Transaction>> grouped =
+                    db.getTransactionsByTypeAndYearGroupedByMonth("income", year);
             Map<String, List<Transaction>> filtered = new LinkedHashMap<>();
             if (grouped.containsKey(month)) {
                 filtered.put(month, grouped.get(month));
