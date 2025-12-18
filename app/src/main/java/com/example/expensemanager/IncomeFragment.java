@@ -11,12 +11,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.*;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.Toast;
+
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.LinkedHashMap;
 
 public class IncomeFragment extends Fragment {
     private DatabaseHelper db;
@@ -37,22 +43,31 @@ public class IncomeFragment extends Fragment {
         etYear = view.findViewById(R.id.et_income_year);
         Button btnAdd = view.findViewById(R.id.btn_add_income);
         RecyclerView rv = view.findViewById(R.id.rv_income);
+        ImageView ivMenu = view.findViewById(R.id.iv_income_menu);
 
         rv.setLayoutManager(new LinearLayoutManager(getContext()));
         rv.setAdapter(adapter);
 
+        // Load BC data once
+        BcStore.load(requireContext());
+
+        // Three dots menu for BC
+        ivMenu.setOnClickListener(v -> BcUiHelper.showBcMenu(IncomeFragment.this, ivMenu));
+
         // Allow only valid months (1-12)
         etMonth.setFilters(new InputFilter[]{
-            new InputFilter.LengthFilter(2),
-            (source, start, end, dest, dstart, dend) -> {
-                String result = dest.toString().substring(0, dstart) + source + dest.toString().substring(dend);
-                if (result.isEmpty()) return null;
-                try {
-                    int value = Integer.parseInt(result);
-                    if (value < 1 || value > 12) return "";
-                } catch (NumberFormatException e) { return ""; }
-                return null;
-            }
+                new InputFilter.LengthFilter(2),
+                (source, start, end, dest, dstart, dend) -> {
+                    String result = dest.toString().substring(0, dstart) + source + dest.toString().substring(dend);
+                    if (result.isEmpty()) return null;
+                    try {
+                        int value = Integer.parseInt(result);
+                        if (value < 1 || value > 12) return "";
+                    } catch (NumberFormatException e) {
+                        return "";
+                    }
+                    return null;
+                }
         });
 
         // Filter list whenever Month or Year changes
@@ -94,30 +109,33 @@ public class IncomeFragment extends Fragment {
             }
 
             new AlertDialog.Builder(getContext())
-                .setTitle("Confirm Add Income")
-                .setMessage("Add this income?")
-                .setPositiveButton("Yes", (dialog, which) -> {
-                    new AsyncTask<Void, Void, Void>() {
-                        @Override
-                        protected Void doInBackground(Void... voids) {
-                            db.insertTransaction("income", amount, note, month, year);
-                            return null;
-                        }
-                        @Override
-                        protected void onPostExecute(Void aVoid) {
-                            selectedYear = etYear.getText().toString().trim();
-                            adapter.setSelectedYear(selectedYear);
-                            updateList();
-                            etAmount.setText("");
-                            etNote.setText("");
-                            InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-                            imm.hideSoftInputFromWindow(etAmount.getWindowToken(), 0);
-                            imm.hideSoftInputFromWindow(etNote.getWindowToken(), 0);
-                        }
-                    }.execute();
-                })
-                .setNegativeButton("No", null)
-                .show();
+                    .setTitle("Confirm Add Income")
+                    .setMessage("Add this income?")
+                    .setPositiveButton("Yes", (dialog, which) -> {
+                        new AsyncTask<Void, Void, Void>() {
+                            @Override
+                            protected Void doInBackground(Void... voids) {
+                                db.insertTransaction("income", amount, note, month, year);
+                                return null;
+                            }
+
+                            @Override
+                            protected void onPostExecute(Void aVoid) {
+                                selectedYear = etYear.getText().toString().trim();
+                                adapter.setSelectedYear(selectedYear);
+                                updateList();
+                                etAmount.setText("");
+                                etNote.setText("");
+                                InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                                if (imm != null) {
+                                    imm.hideSoftInputFromWindow(etAmount.getWindowToken(), 0);
+                                    imm.hideSoftInputFromWindow(etNote.getWindowToken(), 0);
+                                }
+                            }
+                        }.execute();
+                    })
+                    .setNegativeButton("No", null)
+                    .show();
         });
 
         // Initial load
@@ -133,13 +151,13 @@ public class IncomeFragment extends Fragment {
         String year = etYear.getText().toString().trim();
         if (!month.isEmpty() && !year.isEmpty()) {
             Map<String, List<Transaction>> grouped = db.getTransactionsByTypeAndYearGroupedByMonth("income", year);
-            Map<String, List<Transaction>> filtered = new java.util.LinkedHashMap<>();
+            Map<String, List<Transaction>> filtered = new LinkedHashMap<>();
             if (grouped.containsKey(month)) {
                 filtered.put(month, grouped.get(month));
             }
             adapter.setData(filtered);
         } else {
-            adapter.setData(new java.util.LinkedHashMap<>());
+            adapter.setData(new LinkedHashMap<>());
         }
     }
 }
