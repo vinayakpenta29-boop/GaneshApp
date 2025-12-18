@@ -36,6 +36,7 @@ public class IncomeFragment extends Fragment {
     private List<String> categories;
     private ArrayAdapter<String> categoryAdapter;
     private String selectedYear = "";
+    private String selectedBcId = null;   // which BC this income belongs to (if any)
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -59,7 +60,7 @@ public class IncomeFragment extends Fragment {
         // Load BC data once
         BcStore.load(requireContext());
 
-        // Three dots menu for BC
+        // Three dots menu for BC (Add BC / View BC List)
         ivMenu.setOnClickListener(v -> BcUiHelper.showBcMenu(IncomeFragment.this, ivMenu));
 
         // Setup category spinner (same list as expenses)
@@ -71,8 +72,18 @@ public class IncomeFragment extends Fragment {
         spinnerCategory.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(android.widget.AdapterView<?> parent, View v, int pos, long id) {
-                if (categories.get(pos).equals("Other")) {
+                String cat = categories.get(pos);
+                if ("Other".equals(cat)) {
                     showAddCategoryDialog();
+                    selectedBcId = null;
+                } else if ("BC".equals(cat)) {
+                    // Ask which BC scheme this income belongs to
+                    BcUiHelper.showSelectBcDialog(IncomeFragment.this, bcId -> {
+                        selectedBcId = bcId;
+                    });
+                } else {
+                    // Normal category, no BC link
+                    selectedBcId = null;
                 }
             }
             @Override public void onNothingSelected(android.widget.AdapterView<?> parent) {}
@@ -142,8 +153,14 @@ public class IncomeFragment extends Fragment {
                         new AsyncTask<Void, Void, Void>() {
                             @Override
                             protected Void doInBackground(Void... voids) {
-                                // Overload with category (same as expenses)
-                                db.insertTransaction("income", amount, note, month, year, category);
+                                // Insert with category and BC id (db must support bcId)
+                                db.insertTransaction("income", amount, note, month, year, category, selectedBcId);
+
+                                // If this income belongs to a BC scheme, mark one installment done
+                                if ("BC".equals(category) && selectedBcId != null) {
+                                    BcStore.markBcInstallmentDone(selectedBcId, null);
+                                    BcStore.save(requireContext());
+                                }
                                 return null;
                             }
 
