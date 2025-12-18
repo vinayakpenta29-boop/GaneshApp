@@ -149,7 +149,7 @@ public class ExpensesFragment extends Fragment {
                         @Override
                         protected Void doInBackground(Void... voids) {
                             // Insert with category and BC id
-                            db.insertTransaction("expense", amount, note, month, year, category, selectedBcId);
+                            db.insertTransaction("expense", amount, note, month, year, category);
 
                             // If this expense belongs to a BC scheme, mark one installment done
                             if ("BC".equals(category) && selectedBcId != null) {
