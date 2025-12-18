@@ -6,6 +6,32 @@
     android:background="#d3d3d3"
     android:padding="16dp">
 
+    <!-- Top row: title + three dots menu for BC -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Expenses"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#22223A" />
+
+        <ImageView
+            android:id="@+id/iv_expenses_menu"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_more_vert_24"
+            android:contentDescription="Expenses menu"
+            android:padding="4dp" />
+    </LinearLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
