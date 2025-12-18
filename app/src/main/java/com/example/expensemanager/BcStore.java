@@ -15,6 +15,11 @@ import java.util.List;
 
 public class BcStore {
 
+    // Callback used when user selects a BC scheme from a dialog
+    public interface OnBcSelectedListener {
+        void onBcSelected(String bcId);
+    }
+
     public static class BcScheme {
         public String name;
         public int months;
@@ -75,6 +80,7 @@ public class BcStore {
         }
     }
 
+    // Increase paidCount so next checkbox is ticked in View BC List
     public static void markBcInstallmentDone(String bcId, String unusedDate) {
         if (TextUtils.isEmpty(bcId)) return;
         for (String key : bcMap.keySet()) {
