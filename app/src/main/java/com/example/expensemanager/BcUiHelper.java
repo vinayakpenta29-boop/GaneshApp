@@ -58,6 +58,51 @@ public class BcUiHelper {
         menu.show();
     }
 
+    // Dialog used when category = BC (select which BC scheme)
+    public static void showSelectBcDialog(Fragment fragment,
+                                          BcStore.OnBcSelectedListener listener) {
+        Context ctx = fragment.requireContext();
+        HashMap<String, ArrayList<BcScheme>> bcMap = BcStore.getBcMap();
+
+        if (bcMap.isEmpty()) {
+            Toast.makeText(ctx, "No BC schemes found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        List<String> labels = new ArrayList<>();
+        List<String> ids = new ArrayList<>();
+
+        for (String key : bcMap.keySet()) {
+            ArrayList<BcScheme> list = bcMap.get(key);
+            if (list == null) continue;
+
+            for (BcScheme s : list) {
+                String label = ("_GLOBAL_".equals(key) || TextUtils.isEmpty(key))
+                        ? s.name
+                        : key + " - " + s.name;
+                labels.add(label);
+                ids.add(s.id); // key|name
+            }
+        }
+
+        if (labels.isEmpty()) {
+            Toast.makeText(ctx, "No BC schemes found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String[] items = labels.toArray(new String[0]);
+        new android.app.AlertDialog.Builder(ctx)
+                .setTitle("Which BC belongs to?")
+                .setItems(items, (d, which) -> {
+                    String bcId = ids.get(which);
+                    if (listener != null) {
+                        listener.onBcSelected(bcId);
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
     public static void showAddBcDialog(Fragment fragment, OnBcAddedListener listener) {
         Context ctx = fragment.requireContext();
 
