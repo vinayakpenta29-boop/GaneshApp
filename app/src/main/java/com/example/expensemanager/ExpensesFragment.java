@@ -15,6 +15,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -50,9 +51,16 @@ public class ExpensesFragment extends Fragment {
         spinnerCategory = view.findViewById(R.id.spinner_expense_category);
         Button btnAdd = view.findViewById(R.id.btn_add_expense);
         RecyclerView rv = view.findViewById(R.id.rv_expenses);
+        ImageView ivMenu = view.findViewById(R.id.iv_expenses_menu);
 
         rv.setLayoutManager(new LinearLayoutManager(getContext()));
         rv.setAdapter(adapter);
+
+        // Load BC data once
+        BcStore.load(requireContext());
+
+        // Three dots menu for BC
+        ivMenu.setOnClickListener(v -> BcUiHelper.showBcMenu(ExpensesFragment.this, ivMenu));
 
         // Setup category spinner
         categories = new ArrayList<>(Arrays.asList("EMI", "BC", "Rent", "Electricity Bill", "Ration", "Other"));
@@ -141,14 +149,15 @@ public class ExpensesFragment extends Fragment {
                             etAmount.setText("");
                             etNote.setText("");
                             InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-                            imm.hideSoftInputFromWindow(etAmount.getWindowToken(), 0);
-                            imm.hideSoftInputFromWindow(etNote.getWindowToken(), 0);
+                            if (imm != null) {
+                                imm.hideSoftInputFromWindow(etAmount.getWindowToken(), 0);
+                                imm.hideSoftInputFromWindow(etNote.getWindowToken(), 0);
+                            }
 
-                            // --- Notify SummaryFragment to refresh ---
+                            // Notify SummaryFragment to refresh
                             Bundle b = new Bundle();
                             b.putBoolean("refresh", true);
-                            if (getParentFragmentManager() != null)
-                                getParentFragmentManager().setFragmentResult("refresh_summary", b);
+                            getParentFragmentManager().setFragmentResult("refresh_summary", b);
                         }
                     }.execute();
                 })
@@ -171,7 +180,7 @@ public class ExpensesFragment extends Fragment {
             .setPositiveButton("OK", (d, w) -> {
                 String newCat = input.getText().toString().trim();
                 if (!newCat.isEmpty() && !categories.contains(newCat)) {
-                    categories.add(categories.size() - 1, newCat); // Insert before "Other"
+                    categories.add(categories.size() - 1, newCat);
                     categoryAdapter.notifyDataSetChanged();
                     spinnerCategory.setSelection(categories.indexOf(newCat));
                 }
