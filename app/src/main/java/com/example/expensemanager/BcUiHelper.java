@@ -170,14 +170,14 @@ public class BcUiHelper {
         btnFixed.setText("Fixed Amount");
         btnFixed.setAllCaps(false);
         btnFixed.setTextColor(Color.WHITE);
-        btnFixed.setBackgroundColor(Color.parseColor("#4CAF50"));
+        btnFixed.setBackgroundColor(R.drawable.btn_installment_green);
         btnFixed.setLayoutParams(new LinearLayout.LayoutParams(btnParams));
 
         Button btnRandom = new Button(ctx);
         btnRandom.setText("Random Amount");
         btnRandom.setAllCaps(false);
         btnRandom.setTextColor(Color.WHITE);
-        btnRandom.setBackgroundColor(Color.parseColor("#4CAF50"));
+        btnRandom.setBackgroundColor(R.drawable.btn_installment_green);
         btnRandom.setLayoutParams(new LinearLayout.LayoutParams(btnParams));
 
         instLayout.addView(btnRandom);
