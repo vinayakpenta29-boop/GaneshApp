@@ -40,6 +40,18 @@ public class BcStore {
         return bcMap;
     }
 
+    /** New: get all BC schemes as a flat list (used by delete dialog) */
+    public static List<BcScheme> getAllSchemes() {
+        List<BcScheme> all = new ArrayList<>();
+        for (String key : bcMap.keySet()) {
+            ArrayList<BcScheme> list = bcMap.get(key);
+            if (list != null) {
+                all.addAll(list);
+            }
+        }
+        return all;
+    }
+
     public static void addScheme(String key, BcScheme scheme) {
         ArrayList<BcScheme> list = bcMap.get(key);
         if (list == null) {
@@ -63,6 +75,7 @@ public class BcStore {
         }
     }
 
+    /** New helper already present but used by multi‑delete: remove by id anywhere in map */
     public static void removeSchemeById(String bcId) {
         if (TextUtils.isEmpty(bcId)) return;
         for (String key : new ArrayList<>(bcMap.keySet())) {
