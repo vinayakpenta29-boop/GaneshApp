@@ -62,7 +62,7 @@ public class ExpensesFragment extends Fragment {
         BcStore.load(requireContext());
         EmiStore.load(requireContext());
 
-        // Three dots menu (currently BC only; you can add EMI items in BcUiHelper if you want)
+        // Three dots menu (BC + EMI handled inside BcUiHelper)
         ivMenu.setOnClickListener(v -> BcUiHelper.showBcMenu(ExpensesFragment.this, ivMenu));
 
         // Setup category spinner (EMI + BC + others)
