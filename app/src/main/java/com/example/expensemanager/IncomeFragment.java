@@ -36,7 +36,8 @@ public class IncomeFragment extends Fragment {
     private List<String> categories;
     private ArrayAdapter<String> categoryAdapter;
     private String selectedYear = "";
-    private String selectedBcId = null;   // which BC this income belongs to (if any)
+    private String selectedBcId = null;    // which BC this income belongs to (if any)
+    private String selectedEmiId = null;   // which EMI this income belongs to (if any)
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -57,13 +58,14 @@ public class IncomeFragment extends Fragment {
         rv.setLayoutManager(new LinearLayoutManager(getContext()));
         rv.setAdapter(adapter);
 
-        // Load BC data once
+        // Load BC and EMI data once
         BcStore.load(requireContext());
+        EmiStore.load(requireContext());
 
-        // Three dots menu for BC (Add BC / View BC List)
+        // Three dots menu (currently BC only – you can extend this to also show EMI if you want)
         ivMenu.setOnClickListener(v -> BcUiHelper.showBcMenu(IncomeFragment.this, ivMenu));
 
-        // Setup category spinner (same list as expenses)
+        // Setup category spinner (EMI + BC + other categories)
         categories = new ArrayList<>(Arrays.asList("EMI", "BC", "Rent", "Electricity Bill", "Ration", "Other"));
         categoryAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, categories);
         categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -76,14 +78,23 @@ public class IncomeFragment extends Fragment {
                 if ("Other".equals(cat)) {
                     showAddCategoryDialog();
                     selectedBcId = null;
+                    selectedEmiId = null;
                 } else if ("BC".equals(cat)) {
                     // Ask which BC scheme this income belongs to
+                    selectedEmiId = null;
                     BcUiHelper.showSelectBcDialog(IncomeFragment.this, bcId -> {
                         selectedBcId = bcId;
                     });
-                } else {
-                    // Normal category, no BC link
+                } else if ("EMI".equals(cat)) {
+                    // Ask which EMI scheme this income belongs to
                     selectedBcId = null;
+                    EmiUiHelper.showSelectEmiDialog(IncomeFragment.this, emiId -> {
+                        selectedEmiId = emiId;
+                    });
+                } else {
+                    // Normal category, no BC/EMI link
+                    selectedBcId = null;
+                    selectedEmiId = null;
                 }
             }
             @Override public void onNothingSelected(android.widget.AdapterView<?> parent) {}
@@ -153,13 +164,19 @@ public class IncomeFragment extends Fragment {
                         new AsyncTask<Void, Void, Void>() {
                             @Override
                             protected Void doInBackground(Void... voids) {
-                                // Insert with category and BC id (db must support bcId)
+                                // Insert with existing 6-arg method (no bc/emi id in DB)
                                 db.insertTransaction("income", amount, note, month, year, category);
 
-                                // If this income belongs to a BC scheme, mark one installment done
+                                // If this income belongs to a BC scheme, mark one BC installment done
                                 if ("BC".equals(category) && selectedBcId != null) {
                                     BcStore.markBcInstallmentDone(selectedBcId, null);
                                     BcStore.save(requireContext());
+                                }
+
+                                // If this income belongs to an EMI scheme, mark one EMI installment done
+                                if ("EMI".equals(category) && selectedEmiId != null) {
+                                    EmiStore.markEmiInstallmentDone(selectedEmiId, null);
+                                    EmiStore.save(requireContext());
                                 }
                                 return null;
                             }
