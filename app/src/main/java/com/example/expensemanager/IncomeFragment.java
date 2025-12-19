@@ -8,6 +8,7 @@ import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
@@ -62,8 +63,30 @@ public class IncomeFragment extends Fragment {
         BcStore.load(requireContext());
         EmiStore.load(requireContext());
 
-        // Three dots menu (BC + EMI handled inside BcUiHelper)
-        ivMenu.setOnClickListener(v -> BcUiHelper.showBcMenu(IncomeFragment.this, ivMenu));
+        // Three dots menu: existing BC/EMI menu + new Delete option
+        ivMenu.setOnClickListener(v -> {
+            android.widget.PopupMenu popup = new android.widget.PopupMenu(requireContext(), ivMenu);
+            // Existing menu item
+            popup.getMenu().add(0, 1, 0, "BC / EMI Menu");
+            // New delete item
+            popup.getMenu().add(0, 2, 1, "Delete");
+
+            popup.setOnMenuItemClickListener((MenuItem item) -> {
+                int id = item.getItemId();
+                if (id == 1) {
+                    // Old behavior – keep using your existing helper
+                    BcUiHelper.showBcMenu(IncomeFragment.this, ivMenu);
+                    return true;
+                } else if (id == 2) {
+                    // New delete flow: show BC/EMI delete dialog
+                    SchemeDeleteHelper.showDeleteDialog(IncomeFragment.this);
+                    return true;
+                }
+                return false;
+            });
+
+            popup.show();
+        });
 
         // Setup category spinner with "Select Category" as dummy first item
         categories = new ArrayList<>(Arrays.asList(
