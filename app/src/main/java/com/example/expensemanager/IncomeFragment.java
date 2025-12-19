@@ -62,19 +62,36 @@ public class IncomeFragment extends Fragment {
         BcStore.load(requireContext());
         EmiStore.load(requireContext());
 
-        // Three dots menu (currently BC only – you can extend this to also show EMI if you want)
+        // Three dots menu (BC + EMI handled inside BcUiHelper)
         ivMenu.setOnClickListener(v -> BcUiHelper.showBcMenu(IncomeFragment.this, ivMenu));
 
-        // Setup category spinner (EMI + BC + other categories)
-        categories = new ArrayList<>(Arrays.asList("EMI", "BC", "Rent", "Electricity Bill", "Ration", "Other"));
+        // Setup category spinner with "Select Category" as dummy first item
+        categories = new ArrayList<>(Arrays.asList(
+                "Select Category",  // index 0 = no real selection
+                "EMI",
+                "BC",
+                "Rent",
+                "Electricity Bill",
+                "Ration",
+                "Other"
+        ));
         categoryAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, categories);
         categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCategory.setAdapter(categoryAdapter);
+        spinnerCategory.setSelection(0); // start with "Select Category"
 
         spinnerCategory.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(android.widget.AdapterView<?> parent, View v, int pos, long id) {
                 String cat = categories.get(pos);
+
+                if ("Select Category".equals(cat)) {
+                    // Treat as no selection
+                    selectedBcId = null;
+                    selectedEmiId = null;
+                    return;
+                }
+
                 if ("Other".equals(cat)) {
                     showAddCategoryDialog();
                     selectedBcId = null;
@@ -82,15 +99,11 @@ public class IncomeFragment extends Fragment {
                 } else if ("BC".equals(cat)) {
                     // Ask which BC scheme this income belongs to
                     selectedEmiId = null;
-                    BcUiHelper.showSelectBcDialog(IncomeFragment.this, bcId -> {
-                        selectedBcId = bcId;
-                    });
+                    BcUiHelper.showSelectBcDialog(IncomeFragment.this, bcId -> selectedBcId = bcId);
                 } else if ("EMI".equals(cat)) {
                     // Ask which EMI scheme this income belongs to
                     selectedBcId = null;
-                    EmiUiHelper.showSelectEmiDialog(IncomeFragment.this, emiId -> {
-                        selectedEmiId = emiId;
-                    });
+                    EmiUiHelper.showSelectEmiDialog(IncomeFragment.this, emiId -> selectedEmiId = emiId);
                 } else {
                     // Normal category, no BC/EMI link
                     selectedBcId = null;
@@ -144,6 +157,11 @@ public class IncomeFragment extends Fragment {
                 return;
             }
 
+            if ("Select Category".equals(category) || category.isEmpty()) {
+                Toast.makeText(getContext(), "Please select a category", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             double amount;
             try {
                 amount = Double.parseDouble(amountStr);
@@ -188,7 +206,14 @@ public class IncomeFragment extends Fragment {
                                 updateList();
                                 etAmount.setText("");
                                 etNote.setText("");
-                                InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+
+                                // Reset category and scheme ids after each add
+                                spinnerCategory.setSelection(0); // back to "Select Category"
+                                selectedBcId = null;
+                                selectedEmiId = null;
+
+                                InputMethodManager imm = (InputMethodManager) getActivity()
+                                        .getSystemService(Context.INPUT_METHOD_SERVICE);
                                 if (imm != null) {
                                     imm.hideSoftInputFromWindow(etAmount.getWindowToken(), 0);
                                     imm.hideSoftInputFromWindow(etNote.getWindowToken(), 0);
@@ -216,7 +241,9 @@ public class IncomeFragment extends Fragment {
                 .setPositiveButton("OK", (d, w) -> {
                     String newCat = input.getText().toString().trim();
                     if (!newCat.isEmpty() && !categories.contains(newCat)) {
-                        categories.add(categories.size() - 1, newCat); // before "Other"
+                        // Insert before "Other"
+                        int insertIndex = Math.max(categories.indexOf("Other"), 1);
+                        categories.add(insertIndex, newCat);
                         categoryAdapter.notifyDataSetChanged();
                         spinnerCategory.setSelection(categories.indexOf(newCat));
                     }
