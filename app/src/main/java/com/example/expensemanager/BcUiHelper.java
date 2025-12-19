@@ -433,7 +433,7 @@ public class BcUiHelper {
             TableRow row = new TableRow(ctx);
             row.setPadding(0, 0, 0, 0);
             if (done) {
-                row.setBackgroundColor(Color.parseColor("#D0F8CE"));
+                row.setBackgroundResource(R.drawable.bg_row_paid);
             }
 
             TextView tvSr = createCell(ctx, String.valueOf(i + 1), cellPad, true);
@@ -462,6 +462,8 @@ public class BcUiHelper {
 
         int dialogPadding = dpToPx(fragment, 16);
         container.setPadding(dialogPadding, dialogPadding, dialogPadding, dialogPadding);
+        container.setBackgroundResource(R.drawable.bg_table_container);
+
         container.addView(scrollView);
 
         new android.app.AlertDialog.Builder(ctx)
@@ -478,7 +480,7 @@ public class BcUiHelper {
         tv.setGravity(Gravity.CENTER);
         tv.setPadding(pad, pad, pad, pad);
         tv.setTextColor(Color.BLACK);
-        tv.setBackgroundColor(Color.parseColor("#E0E0E0"));
+        tv.setBackgroundResource(R.drawable.table_cell_border);
         return tv;
     }
 
@@ -489,7 +491,7 @@ public class BcUiHelper {
         tv.setPadding(pad, pad, pad, pad);
         tv.setTextColor(Color.BLACK);
         if (bold) tv.setTypeface(null, android.graphics.Typeface.BOLD);
-        tv.setBackgroundColor(Color.WHITE);
+        tv.setBackgroundColor(R.drawable.table_cell_border);
         return tv;
     }
 }
