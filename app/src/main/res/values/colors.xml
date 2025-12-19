@@ -9,4 +9,12 @@
     <color name="colorPrimaryVariant">@color/purple_700</color>
     <color name="colorSecondary">@color/teal_200</color>
     <color name="colorSecondaryVariant">@color/teal_700</color>
+
+    <color name="btn_installment_green">#195c31</color>
+    <color name="bg_row_paid">#E8F5E9</color>
+    <color name="bg_table_container">#F2F2F2</color>
+    <color name="table_cell_border">#8E9492</color>
+    
+    
+    
 </resources>
