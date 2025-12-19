@@ -37,6 +37,7 @@ public class ExpensesFragment extends Fragment {
     private ArrayAdapter<String> categoryAdapter;
     private String selectedYear = "";
     private String selectedBcId = null;   // which BC this expense belongs to (if any)
+    private String selectedEmiId = null;  // which EMI this expense belongs to (if any)
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -57,13 +58,14 @@ public class ExpensesFragment extends Fragment {
         rv.setLayoutManager(new LinearLayoutManager(getContext()));
         rv.setAdapter(adapter);
 
-        // Load BC data once
+        // Load BC and EMI data once
         BcStore.load(requireContext());
+        EmiStore.load(requireContext());
 
-        // Three dots menu for BC (Add BC / View BC List)
+        // Three dots menu (currently BC only; you can add EMI items in BcUiHelper if you want)
         ivMenu.setOnClickListener(v -> BcUiHelper.showBcMenu(ExpensesFragment.this, ivMenu));
 
-        // Setup category spinner
+        // Setup category spinner (EMI + BC + others)
         categories = new ArrayList<>(Arrays.asList("EMI", "BC", "Rent", "Electricity Bill", "Ration", "Other"));
         categoryAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, categories);
         categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -76,13 +78,22 @@ public class ExpensesFragment extends Fragment {
                 if ("Other".equals(cat)) {
                     showAddCategoryDialog();
                     selectedBcId = null;
+                    selectedEmiId = null;
                 } else if ("BC".equals(cat)) {
                     // Ask which BC scheme this expense belongs to
+                    selectedEmiId = null;
                     BcUiHelper.showSelectBcDialog(ExpensesFragment.this, bcId -> {
                         selectedBcId = bcId;
                     });
+                } else if ("EMI".equals(cat)) {
+                    // Ask which EMI scheme this expense belongs to
+                    selectedBcId = null;
+                    EmiUiHelper.showSelectEmiDialog(ExpensesFragment.this, emiId -> {
+                        selectedEmiId = emiId;
+                    });
                 } else {
                     selectedBcId = null;
+                    selectedEmiId = null;
                 }
             }
             @Override public void onNothingSelected(AdapterView<?> parent) {}
@@ -148,13 +159,19 @@ public class ExpensesFragment extends Fragment {
                     new AsyncTask<Void, Void, Void>() {
                         @Override
                         protected Void doInBackground(Void... voids) {
-                            // Insert with category and BC id
+                            // Insert with existing 6-arg method
                             db.insertTransaction("expense", amount, note, month, year, category);
 
-                            // If this expense belongs to a BC scheme, mark one installment done
+                            // If this expense belongs to a BC scheme, mark one BC installment done
                             if ("BC".equals(category) && selectedBcId != null) {
                                 BcStore.markBcInstallmentDone(selectedBcId, null);
                                 BcStore.save(requireContext());
+                            }
+
+                            // If this expense belongs to an EMI scheme, mark one EMI installment done
+                            if ("EMI".equals(category) && selectedEmiId != null) {
+                                EmiStore.markEmiInstallmentDone(selectedEmiId, null);
+                                EmiStore.save(requireContext());
                             }
                             return null;
                         }
