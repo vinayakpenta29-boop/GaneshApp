@@ -49,6 +49,18 @@ public class EmiStore {
         return emiMap;
     }
 
+    /** New: get all EMI schemes as a flat list (used by delete dialog) */
+    public static List<EmiScheme> getAllSchemes() {
+        List<EmiScheme> all = new ArrayList<>();
+        for (String key : emiMap.keySet()) {
+            ArrayList<EmiScheme> list = emiMap.get(key);
+            if (list != null) {
+                all.addAll(list);
+            }
+        }
+        return all;
+    }
+
     public static void addScheme(String key, EmiScheme scheme) {
         ArrayList<EmiScheme> list = emiMap.get(key);
         if (list == null) {
@@ -72,7 +84,6 @@ public class EmiStore {
         }
     }
 
-    
     public static void removeSchemeById(String emiId) {
         if (TextUtils.isEmpty(emiId)) return;
         for (String key : new ArrayList<>(emiMap.keySet())) {
