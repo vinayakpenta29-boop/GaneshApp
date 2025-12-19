@@ -170,14 +170,14 @@ public class BcUiHelper {
         btnFixed.setText("Fixed Amount");
         btnFixed.setAllCaps(false);
         btnFixed.setTextColor(Color.WHITE);
-        btnFixed.setBackgroundColor(R.drawable.btn_installment_green);
+        btnFixed.setBackgroundResource(R.drawable.btn_installment_green);
         btnFixed.setLayoutParams(new LinearLayout.LayoutParams(btnParams));
 
         Button btnRandom = new Button(ctx);
         btnRandom.setText("Random Amount");
         btnRandom.setAllCaps(false);
         btnRandom.setTextColor(Color.WHITE);
-        btnRandom.setBackgroundColor(R.drawable.btn_installment_green);
+        btnRandom.setBackgroundResource(R.drawable.btn_installment_green);
         btnRandom.setLayoutParams(new LinearLayout.LayoutParams(btnParams));
 
         instLayout.addView(btnRandom);
@@ -491,7 +491,7 @@ public class BcUiHelper {
         tv.setPadding(pad, pad, pad, pad);
         tv.setTextColor(Color.BLACK);
         if (bold) tv.setTypeface(null, android.graphics.Typeface.BOLD);
-        tv.setBackgroundColor(R.drawable.table_cell_border);
+        tv.setBackgroundResource(R.drawable.table_cell_border);
         return tv;
     }
 }
