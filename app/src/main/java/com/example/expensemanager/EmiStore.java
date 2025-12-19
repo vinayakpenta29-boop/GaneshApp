@@ -72,23 +72,7 @@ public class EmiStore {
         }
     }
 
-    public static void removeSchemeById(String emiId) {
-        if (TextUtils.isEmpty(emiId)) return;
-        for (String key : new ArrayList<>(emiMap.keySet())) {
-            ArrayList<EmiScheme> list = emiMap.get(key);
-            if (list == null) continue;
-            for (int i = list.size() - 1; i >= 0; i--) {
-                EmiScheme s = list.get(i);
-                if (emiId.equals(s.id)) {
-                    list.remove(i);
-                }
-            }
-            if (list.isEmpty()) {
-                emiMap.remove(key);
-            }
-        }
-    }
-
+    
     public static void removeSchemeById(String emiId) {
         if (TextUtils.isEmpty(emiId)) return;
         for (String key : new ArrayList<>(emiMap.keySet())) {
