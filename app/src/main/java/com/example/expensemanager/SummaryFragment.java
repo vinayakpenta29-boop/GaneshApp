@@ -543,4 +543,35 @@ public class SummaryFragment extends Fragment {
         } catch (Exception e) {}
         return dateRaw;
     }
+
+    // NEW: helpers for per‑category totals (used for Salary/Commission balances)
+    public double getIncomeTotalForCategoryMonthYear(String category, String month, String year) {
+        double total = 0;
+        Map<String, List<Transaction>> byMonth = db.getTransactionsByTypeAndYearGroupedByMonth("income", year);
+        if (byMonth == null) return 0;
+        List<Transaction> txns = byMonth.get(month);
+        if (txns == null) return 0;
+        for (Transaction t : txns) {
+            if (category.equals(t.category)) total += t.amount;
+        }
+        return total;
+    }
+
+    public double getExpenseTotalForCategoryMonthYear(String category, String month, String year) {
+        double total = 0;
+        Map<String, List<Transaction>> byMonth = db.getTransactionsByTypeAndYearGroupedByMonth("expense", year);
+        if (byMonth == null) return 0;
+        List<Transaction> txns = byMonth.get(month);
+        if (txns == null) return 0;
+        for (Transaction t : txns) {
+            if (category.equals(t.category)) total += t.amount;
+        }
+        return total;
+    }
+
+    public double getBalanceForCategoryMonthYear(String category, String month, String year) {
+        double inc = getIncomeTotalForCategoryMonthYear(category, month, year);
+        double exp = getExpenseTotalForCategoryMonthYear(category, month, year);
+        return inc - exp;
+    }
 }
