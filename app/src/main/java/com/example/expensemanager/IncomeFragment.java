@@ -91,11 +91,10 @@ public class IncomeFragment extends Fragment {
         // Setup category spinner with "Select Category" as dummy first item
         categories = new ArrayList<>(Arrays.asList(
                 "Select Category",  // index 0 = no real selection
-                "EMI",
+                "Salary",
                 "BC",
                 "Rent",
-                "Electricity Bill",
-                "Ration",
+                "Commission",
                 "Other"
         ));
         categoryAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, categories);
