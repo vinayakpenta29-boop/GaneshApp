@@ -17,6 +17,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -40,6 +41,9 @@ public class ExpensesFragment extends Fragment {
     private String selectedBcId = null;   // which BC this expense belongs to (if any)
     private String selectedEmiId = null;  // which EMI this expense belongs to (if any)
 
+    // New: radio buttons for Salary / Commission / Other source
+    private RadioButton rbExpSalary, rbExpCommission, rbExpOther;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_expenses, container, false);
@@ -55,6 +59,14 @@ public class ExpensesFragment extends Fragment {
         Button btnAdd = view.findViewById(R.id.btn_add_expense);
         RecyclerView rv = view.findViewById(R.id.rv_expenses);
         ImageView ivMenu = view.findViewById(R.id.iv_expenses_menu);
+
+        // New: find radio buttons
+        rbExpSalary = view.findViewById(R.id.rb_exp_salary);
+        rbExpCommission = view.findViewById(R.id.rb_exp_commission);
+        rbExpOther = view.findViewById(R.id.rb_exp_other);
+        if (rbExpOther != null) {
+            rbExpOther.setChecked(true); // default to Other
+        }
 
         rv.setLayoutManager(new LinearLayoutManager(getContext()));
         rv.setAdapter(adapter);
@@ -195,6 +207,11 @@ public class ExpensesFragment extends Fragment {
                 return;
             }
 
+            // New: determine which source radio is selected (for later summary logic)
+            boolean isSalarySource = rbExpSalary != null && rbExpSalary.isChecked();
+            boolean isCommissionSource = rbExpCommission != null && rbExpCommission.isChecked();
+            // Currently these flags are not stored; they will be used when DB/schema is updated.
+
             new AlertDialog.Builder(getContext())
                 .setTitle("Confirm Add Expense")
                 .setMessage("Add this expense?")
@@ -216,6 +233,8 @@ public class ExpensesFragment extends Fragment {
                                 EmiStore.markEmiInstallmentDone(selectedEmiId, null);
                                 EmiStore.save(requireContext());
                             }
+                            // Later you can persist isSalarySource / isCommissionSource here
+                            // once a source_type column is added to the DB.
                             return null;
                         }
                         @Override
@@ -230,6 +249,11 @@ public class ExpensesFragment extends Fragment {
                             spinnerCategory.setSelection(0); // back to "Select Category"
                             selectedBcId = null;
                             selectedEmiId = null;
+
+                            // Optional: reset radio to Other
+                            if (rbExpOther != null) {
+                                rbExpOther.setChecked(true);
+                            }
 
                             InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
                             if (imm != null) {
