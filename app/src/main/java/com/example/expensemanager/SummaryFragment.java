@@ -501,11 +501,11 @@ public class SummaryFragment extends Fragment {
                 totalTv.setGravity(Gravity.CENTER_HORIZONTAL);
                 listLayout.addView(totalTv);
 
-                // NEW: for Salary category, show Balance after expenses (green)
+                // For Salary category show Balance AFTER Salary‑source expenses
                 if ("Salary".equals(currentCategoryFilter)) {
                     double incomeSalary = getIncomeTotalForCategoryMonthYear("Salary", month, year);
-                    double expenseSalary = getExpenseTotalForCategoryMonthYear("Salary", month, year);
-                    double salaryBalance = incomeSalary - expenseSalary;
+                    double expenseFromSalarySource = getExpenseTotalFromSourceForMonthYear("SALARY", month, year);
+                    double salaryBalance = incomeSalary - expenseFromSalarySource;
 
                     TextView balanceTv = new TextView(getContext());
                     balanceTv.setText(String.format(Locale.US, "Balance: ₹%.2f", salaryBalance));
@@ -524,7 +524,6 @@ public class SummaryFragment extends Fragment {
             }
         }
 
-        // Optionally show All Total at end:
         if (!categoryGrouped.isEmpty()) {
             TextView totalsHeading = new TextView(getContext());
             totalsHeading.setText(String.format(Locale.US, "Total (%s): ₹%.2f", currentCategoryFilter, allTotal));
@@ -562,7 +561,7 @@ public class SummaryFragment extends Fragment {
         return dateRaw;
     }
 
-    // Helpers for per‑category totals (used for Salary/Commission balances)
+    // Helpers for per‑category totals
     public double getIncomeTotalForCategoryMonthYear(String category, String month, String year) {
         double total = 0;
         Map<String, List<Transaction>> byMonth = db.getTransactionsByTypeAndYearGroupedByMonth("income", year);
@@ -571,6 +570,19 @@ public class SummaryFragment extends Fragment {
         if (txns == null) return 0;
         for (Transaction t : txns) {
             if (category.equals(t.category)) total += t.amount;
+        }
+        return total;
+    }
+
+    // New: expenses summed by source_type (radio), not by category
+    private double getExpenseTotalFromSourceForMonthYear(String sourceType, String month, String year) {
+        double total = 0;
+        Map<String, List<Transaction>> byMonth = db.getTransactionsByTypeAndYearGroupedByMonth("expense", year);
+        if (byMonth == null) return 0;
+        List<Transaction> txns = byMonth.get(month);
+        if (txns == null) return 0;
+        for (Transaction t : txns) {
+            if (sourceType.equals(t.sourceType)) total += t.amount;
         }
         return total;
     }
