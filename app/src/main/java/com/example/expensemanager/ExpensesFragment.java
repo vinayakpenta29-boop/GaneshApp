@@ -41,7 +41,7 @@ public class ExpensesFragment extends Fragment {
     private String selectedBcId = null;   // which BC this expense belongs to (if any)
     private String selectedEmiId = null;  // which EMI this expense belongs to (if any)
 
-    // New: radio buttons for Salary / Commission / Other source
+    // Radio buttons for Salary / Commission / Other income source
     private RadioButton rbExpSalary, rbExpCommission, rbExpOther;
 
     @Override
@@ -60,12 +60,12 @@ public class ExpensesFragment extends Fragment {
         RecyclerView rv = view.findViewById(R.id.rv_expenses);
         ImageView ivMenu = view.findViewById(R.id.iv_expenses_menu);
 
-        // New: find radio buttons
+        // Find radio buttons
         rbExpSalary = view.findViewById(R.id.rb_exp_salary);
         rbExpCommission = view.findViewById(R.id.rb_exp_commission);
         rbExpOther = view.findViewById(R.id.rb_exp_other);
         if (rbExpOther != null) {
-            rbExpOther.setChecked(true); // default to Other
+            rbExpOther.setChecked(true); // default source
         }
 
         rv.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -86,11 +86,9 @@ public class ExpensesFragment extends Fragment {
             popup.setOnMenuItemClickListener((MenuItem item) -> {
                 int id = item.getItemId();
                 if (id == 1) {
-                    // Old behavior – keep using your existing helper
                     BcUiHelper.showBcMenu(ExpensesFragment.this, ivMenu);
                     return true;
                 } else if (id == 2) {
-                    // New delete flow: show BC/EMI delete dialog
                     SchemeDeleteHelper.showDeleteDialog(ExpensesFragment.this);
                     return true;
                 }
@@ -121,7 +119,6 @@ public class ExpensesFragment extends Fragment {
                 String cat = categories.get(pos);
 
                 if ("Select Category".equals(cat)) {
-                    // Treat as no selection
                     selectedBcId = null;
                     selectedEmiId = null;
                     return;
@@ -132,11 +129,9 @@ public class ExpensesFragment extends Fragment {
                     selectedBcId = null;
                     selectedEmiId = null;
                 } else if ("BC".equals(cat)) {
-                    // Ask which BC scheme this expense belongs to
                     selectedEmiId = null;
                     BcUiHelper.showSelectBcDialog(ExpensesFragment.this, bcId -> selectedBcId = bcId);
                 } else if ("EMI".equals(cat)) {
-                    // Ask which EMI scheme this expense belongs to
                     selectedBcId = null;
                     EmiUiHelper.showSelectEmiDialog(ExpensesFragment.this, emiId -> selectedEmiId = emiId);
                 } else {
@@ -207,11 +202,6 @@ public class ExpensesFragment extends Fragment {
                 return;
             }
 
-            // New: determine which source radio is selected (for later summary logic)
-            boolean isSalarySource = rbExpSalary != null && rbExpSalary.isChecked();
-            boolean isCommissionSource = rbExpCommission != null && rbExpCommission.isChecked();
-            // Currently these flags are not stored; they will be used when DB/schema is updated.
-
             new AlertDialog.Builder(getContext())
                 .setTitle("Confirm Add Expense")
                 .setMessage("Add this expense?")
@@ -219,8 +209,19 @@ public class ExpensesFragment extends Fragment {
                     new AsyncTask<Void, Void, Void>() {
                         @Override
                         protected Void doInBackground(Void... voids) {
-                            // Insert with existing 6-arg method
-                            db.insertTransaction("expense", amount, note, month, year, category);
+
+                            // Decide sourceType based on selected radio button
+                            String sourceType;
+                            if (rbExpSalary != null && rbExpSalary.isChecked()) {
+                                sourceType = "SALARY";
+                            } else if (rbExpCommission != null && rbExpCommission.isChecked()) {
+                                sourceType = "COMMISSION";
+                            } else {
+                                sourceType = "OTHER";
+                            }
+
+                            // Use new 7‑arg insert so source_type is stored
+                            db.insertTransaction("expense", amount, note, month, year, category, sourceType);
 
                             // If this expense belongs to a BC scheme, mark one BC installment done
                             if ("BC".equals(category) && selectedBcId != null) {
@@ -233,8 +234,6 @@ public class ExpensesFragment extends Fragment {
                                 EmiStore.markEmiInstallmentDone(selectedEmiId, null);
                                 EmiStore.save(requireContext());
                             }
-                            // Later you can persist isSalarySource / isCommissionSource here
-                            // once a source_type column is added to the DB.
                             return null;
                         }
                         @Override
@@ -250,12 +249,13 @@ public class ExpensesFragment extends Fragment {
                             selectedBcId = null;
                             selectedEmiId = null;
 
-                            // Optional: reset radio to Other
+                            // Reset radio to Other
                             if (rbExpOther != null) {
                                 rbExpOther.setChecked(true);
                             }
 
-                            InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                            InputMethodManager imm = (InputMethodManager) getActivity()
+                                    .getSystemService(Context.INPUT_METHOD_SERVICE);
                             if (imm != null) {
                                 imm.hideSoftInputFromWindow(etAmount.getWindowToken(), 0);
                                 imm.hideSoftInputFromWindow(etNote.getWindowToken(), 0);
@@ -302,7 +302,8 @@ public class ExpensesFragment extends Fragment {
         String month = etMonth.getText().toString().trim();
         String year = etYear.getText().toString().trim();
         if (!month.isEmpty() && !year.isEmpty()) {
-            Map<String, List<Transaction>> grouped = db.getTransactionsByTypeAndYearGroupedByMonth("expense", year);
+            Map<String, List<Transaction>> grouped =
+                    db.getTransactionsByTypeAndYearGroupedByMonth("expense", year);
             Map<String, List<Transaction>> filtered = new java.util.LinkedHashMap<>();
             if (grouped.containsKey(month)) {
                 filtered.put(month, grouped.get(month));
