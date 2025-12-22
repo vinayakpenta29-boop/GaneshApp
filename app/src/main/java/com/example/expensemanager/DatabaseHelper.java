@@ -18,7 +18,8 @@ import java.util.Date;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "finance.db";
-    private static final int DATABASE_VERSION = 3; // Bump version
+    // Bumped to 4 because schema changes (added source_type)
+    private static final int DATABASE_VERSION = 4;
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -26,17 +27,40 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, amount REAL, note TEXT, month TEXT, year TEXT, category TEXT, date TEXT)");
+        db.execSQL(
+                "CREATE TABLE transactions (" +
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        "type TEXT, " +
+                        "amount REAL, " +
+                        "note TEXT, " +
+                        "month TEXT, " +
+                        "year TEXT, " +
+                        "category TEXT, " +
+                        "source_type TEXT, " +    // NEW: which radio (SALARY/COMMISSION/OTHER)
+                        "date TEXT)"
+        );
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS transactions");
-        onCreate(db);
+        // Simple migration: if coming from version < 4, add source_type column
+        if (oldVersion < 4) {
+            try {
+                db.execSQL("ALTER TABLE transactions ADD COLUMN source_type TEXT");
+            } catch (Exception ignored) {
+                // If column already exists, ignore
+            }
+        }
     }
 
-    // Updated to include category
-    public void insertTransaction(String type, double amount, String note, String month, String year, String category) {
+    // New main insert: includes category and sourceType (radio)
+    public void insertTransaction(String type,
+                                  double amount,
+                                  String note,
+                                  String month,
+                                  String year,
+                                  String category,
+                                  String sourceType) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("type", type);
@@ -45,6 +69,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put("month", month);
         values.put("year", year);
         values.put("category", category);
+        values.put("source_type", sourceType); // may be null
 
         // Use device time in IST for 'date'
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US);
@@ -55,9 +80,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.insert("transactions", null, values);
     }
 
-    // Overload for old usage - should migrate to always use the 6-arg version
+    // Existing 6‑arg overload now calls the main insert with null sourceType
+    public void insertTransaction(String type, double amount, String note, String month, String year, String category) {
+        insertTransaction(type, amount, note, month, year, category, null);
+    }
+
+    // Legacy 5‑arg overload – keep for old calls, default category "Other"
     public void insertTransaction(String type, double amount, String note, String month, String year) {
-        insertTransaction(type, amount, note, month, year, "Other");
+        insertTransaction(type, amount, note, month, year, "Other", null);
     }
 
     public ArrayList<Transaction> getAllTransactions(String type) {
@@ -71,8 +101,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 String month = cursor.getString(cursor.getColumnIndex("month"));
                 String year = cursor.getString(cursor.getColumnIndex("year"));
                 String category = cursor.getString(cursor.getColumnIndex("category"));
+                String sourceType = null;
+                int idxSource = cursor.getColumnIndex("source_type");
+                if (idxSource != -1) {
+                    sourceType = cursor.getString(idxSource);
+                }
                 String date = cursor.getString(cursor.getColumnIndex("date"));
-                list.add(new Transaction(type, amount, note, month, year, category, date));
+                // Make sure Transaction has a sourceType field/constructor param
+                list.add(new Transaction(type, amount, note, month, year, category, date, sourceType));
             } while (cursor.moveToNext());
         }
         cursor.close();
@@ -156,7 +192,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // Updated: Each transaction has a category
+    // Grouped by month, including category and source_type
     public Map<String, List<Transaction>> getTransactionsByTypeAndYearGroupedByMonth(String type, String year) {
         Map<String, List<Transaction>> map = new LinkedHashMap<>();
         SQLiteDatabase db = getReadableDatabase();
@@ -169,8 +205,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             String month = cursor.getString(cursor.getColumnIndex("month"));
             String txnYear = cursor.getString(cursor.getColumnIndex("year"));
             String category = cursor.getString(cursor.getColumnIndex("category"));
+            String sourceType = null;
+            int idxSource = cursor.getColumnIndex("source_type");
+            if (idxSource != -1) {
+                sourceType = cursor.getString(idxSource);
+            }
             String date = cursor.getString(cursor.getColumnIndex("date"));
-            Transaction txn = new Transaction(type, amount, note, month, txnYear, category, date);
+            Transaction txn = new Transaction(type, amount, note, month, txnYear, category, date, sourceType);
             if (!map.containsKey(month)) {
                 map.put(month, new ArrayList<>());
             }
