@@ -204,8 +204,13 @@ public class IncomeFragment extends Fragment {
                         new AsyncTask<Void, Void, Void>() {
                             @Override
                             protected Void doInBackground(Void... voids) {
-                                // Insert with existing 6-arg method (no bc/emi id in DB)
-                                db.insertTransaction("income", amount, note, month, year, category);
+
+                                // Decide sourceType for this income
+                                // Only Salary income needs SALARY tag so we can match Salary‑radio expenses.
+                                String sourceType = "Salary".equals(category) ? "SALARY" : null;
+
+                                // Use new 7‑arg insert so source_type is stored
+                                db.insertTransaction("income", amount, note, month, year, category, sourceType);
 
                                 // If this income belongs to a BC scheme, mark one BC installment done
                                 if ("BC".equals(category) && selectedBcId != null) {
