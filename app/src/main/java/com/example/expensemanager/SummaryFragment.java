@@ -490,6 +490,8 @@ public class SummaryFragment extends Fragment {
                         listLayout.addView(divider);
                     }
                 }
+
+                // Yellow Total line
                 TextView totalTv = new TextView(getContext());
                 totalTv.setText(String.format(Locale.US, "Total: ₹%.2f", monthlyTotal));
                 totalTv.setTextSize(16);
@@ -498,6 +500,22 @@ public class SummaryFragment extends Fragment {
                 totalTv.setPadding(0, 16, 0, 0);
                 totalTv.setGravity(Gravity.CENTER_HORIZONTAL);
                 listLayout.addView(totalTv);
+
+                // NEW: for Salary category, show Balance after expenses (green)
+                if ("Salary".equals(currentCategoryFilter)) {
+                    double incomeSalary = getIncomeTotalForCategoryMonthYear("Salary", month, year);
+                    double expenseSalary = getExpenseTotalForCategoryMonthYear("Salary", month, year);
+                    double salaryBalance = incomeSalary - expenseSalary;
+
+                    TextView balanceTv = new TextView(getContext());
+                    balanceTv.setText(String.format(Locale.US, "Balance: ₹%.2f", salaryBalance));
+                    balanceTv.setTextSize(15);
+                    balanceTv.setTextColor(0xFF4CAF50); // green
+                    balanceTv.setTypeface(null, android.graphics.Typeface.BOLD);
+                    balanceTv.setPadding(0, 8, 0, 0);
+                    balanceTv.setGravity(Gravity.CENTER_HORIZONTAL);
+                    listLayout.addView(balanceTv);
+                }
 
                 card.addView(listLayout);
                 monthlyCardsContainer.addView(card);
@@ -544,7 +562,7 @@ public class SummaryFragment extends Fragment {
         return dateRaw;
     }
 
-    // NEW: helpers for per‑category totals (used for Salary/Commission balances)
+    // Helpers for per‑category totals (used for Salary/Commission balances)
     public double getIncomeTotalForCategoryMonthYear(String category, String month, String year) {
         double total = 0;
         Map<String, List<Transaction>> byMonth = db.getTransactionsByTypeAndYearGroupedByMonth("income", year);
