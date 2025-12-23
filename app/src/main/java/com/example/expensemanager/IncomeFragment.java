@@ -207,7 +207,14 @@ public class IncomeFragment extends Fragment {
 
                                 // Decide sourceType for this income
                                 // Only Salary income needs SALARY tag so we can match Salary‑radio expenses.
-                                String sourceType = "Salary".equals(category) ? "SALARY" : null;
+                                String sourceType;
+                                if ("Salary".equals(category)) {
+                                    sourceType = "SALARY";
+                                } else if ("Commission".equals(category)) {
+                                    sourceType = "COMMISSION";
+                                } else {
+                                    sourceType = null;
+                                }
 
                                 // Use new 7‑arg insert so source_type is stored
                                 db.insertTransaction("income", amount, note, month, year, category, sourceType);
