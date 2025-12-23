@@ -526,7 +526,7 @@ public class SummaryFragment extends Fragment {
                     balanceTv.setTextSize(15);
                     balanceTv.setTextColor(0xFFFFFFFF); // green
                     balanceTv.setTypeface(null, android.graphics.Typeface.BOLD);
-                    balanceTv.setPadding(0, 8, 0, 0);
+                    balanceTv.setPadding(24, 8, 24, 8);
                     balanceTv.setBackgroundResource(R.drawable.bg_balance_chip);
                     balanceTv.setGravity(Gravity.CENTER_HORIZONTAL);
                         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
@@ -548,7 +548,7 @@ public class SummaryFragment extends Fragment {
                     balanceTv.setTextSize(15);
                     balanceTv.setTextColor(0xFFFFFFFF); // green
                     balanceTv.setTypeface(null, android.graphics.Typeface.BOLD);
-                    balanceTv.setPadding(24, 8, 24, 0);
+                    balanceTv.setPadding(24, 8, 24, 8);
                     balanceTv.setBackgroundResource(R.drawable.bg_balance_chip);
                     balanceTv.setGravity(Gravity.CENTER_HORIZONTAL);
                         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
