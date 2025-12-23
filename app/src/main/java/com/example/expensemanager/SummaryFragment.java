@@ -295,7 +295,7 @@ public class SummaryFragment extends Fragment {
                 // MONTH-YEAR (centered, bold)
                 TextView monthHeading = new TextView(getContext());
                 monthHeading.setText(getMonthLabel(month) + " " + year);
-                monthHeading.setTextSize(18);
+                monthHeading.setTextSize(16);
                 monthHeading.setTextColor(0xFF22223A);
                 monthHeading.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                 monthHeading.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -317,22 +317,26 @@ public class SummaryFragment extends Fragment {
                     amountView.setText("₹" + txn.amount);
                     amountView.setTypeface(null, android.graphics.Typeface.BOLD);
                     amountView.setTextColor(0xFF444444);
-                    amountView.setTextSize(16);
+                    amountView.setTextSize(14);
                     amountView.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.2f));
 
                     // Note (center)
                     TextView noteView = new TextView(getContext());
                     noteView.setText(txn.note);
                     noteView.setTextColor(0xFF444444);
-                    noteView.setTextSize(16);
-                    noteView.setGravity(Gravity.CENTER_HORIZONTAL);
+                    noteView.setTextSize(14);
+                    noteView.setSingleLine(true);
+                    noteView.setEllipsize(android.text.TextUtils.TruncateAt.MARQUEE);
+                    noteView.setMarqueeRepeatLimit(-1);
+                    noteView.setSelected(true);
+                    noteView.setHorizontalFadingEdgeEnabled(true);
                     noteView.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.4f));
 
                     // Date (DD-MM-YY)
                     TextView dateView = new TextView(getContext());
                     dateView.setText(formatDate(txn.date));
                     dateView.setTextColor(0xFF888888);
-                    dateView.setTextSize(15);
+                    dateView.setTextSize(14);
                     dateView.setGravity(Gravity.END);
                     dateView.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.2f));
 
@@ -433,7 +437,7 @@ public class SummaryFragment extends Fragment {
                 // Month-Year header
                 TextView monthHeading = new TextView(getContext());
                 monthHeading.setText(getMonthLabel(month) + " " + year);
-                monthHeading.setTextSize(18);
+                monthHeading.setTextSize(16);
                 monthHeading.setTextColor(0xFF22223A);
                 monthHeading.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                 monthHeading.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -455,22 +459,26 @@ public class SummaryFragment extends Fragment {
                     amountView.setText("₹" + txn.amount);
                     amountView.setTypeface(null, android.graphics.Typeface.BOLD);
                     amountView.setTextColor(0xFF444444);
-                    amountView.setTextSize(16);
+                    amountView.setTextSize(14);
                     amountView.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.2f));
 
                     // Note
                     TextView noteView = new TextView(getContext());
                     noteView.setText(txn.note);
                     noteView.setTextColor(0xFF444444);
-                    noteView.setTextSize(16);
-                    noteView.setGravity(Gravity.CENTER_HORIZONTAL);
+                    noteView.setTextSize(14);
+                    noteView.setSingleLine(true);
+                    noteView.setEllipsize(android.text.TextUtils.TruncateAt.MARQUEE);
+                    noteView.setMarqueeRepeatLimit(-1);
+                    noteView.setSelected(true);
+                    noteView.setHorizontalFadingEdgeEnabled(true);
                     noteView.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.4f));
 
                     // Date (DD-MM-YY)
                     TextView dateView = new TextView(getContext());
                     dateView.setText(formatDate(txn.date));
                     dateView.setTextColor(0xFF888888);
-                    dateView.setTextSize(15);
+                    dateView.setTextSize(14);
                     dateView.setGravity(Gravity.END);
                     dateView.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.2f));
 
