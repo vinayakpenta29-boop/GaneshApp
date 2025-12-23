@@ -510,10 +510,17 @@ public class SummaryFragment extends Fragment {
                     TextView balanceTv = new TextView(getContext());
                     balanceTv.setText(String.format(Locale.US, "Balance: ₹%.2f", salaryBalance));
                     balanceTv.setTextSize(15);
-                    balanceTv.setTextColor(0xFF4CAF50); // green
+                    balanceTv.setTextColor(0xFFFFFFFF); // green
                     balanceTv.setTypeface(null, android.graphics.Typeface.BOLD);
                     balanceTv.setPadding(0, 8, 0, 0);
+                    balanceTv.setBackgroundResource(R.drawable.bg_balance_chip);
                     balanceTv.setGravity(Gravity.CENTER_HORIZONTAL);
+                        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT);
+                    lp.gravity = Gravity.CENTER_HORIZONTAL;
+                    lp.topMargin = 8;
+                    balanceTv.setLayoutParams(lp);
                     listLayout.addView(balanceTv);
                 }
                 // For Commission category show Balance AFTER Commission‑source expenses
@@ -525,10 +532,17 @@ public class SummaryFragment extends Fragment {
                     TextView balanceTv = new TextView(getContext());
                     balanceTv.setText(String.format(Locale.US, "Balance: ₹%.2f", commissionBalance));
                     balanceTv.setTextSize(15);
-                    balanceTv.setTextColor(0xFF4CAF50); // green
+                    balanceTv.setTextColor(0xFFFFFFFF); // green
                     balanceTv.setTypeface(null, android.graphics.Typeface.BOLD);
-                    balanceTv.setPadding(0, 8, 0, 0);
+                    balanceTv.setPadding(24, 8, 24, 0);
+                    balanceTv.setBackgroundResource(R.drawable.bg_balance_chip);
                     balanceTv.setGravity(Gravity.CENTER_HORIZONTAL);
+                        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT);
+                    lp.gravity = Gravity.CENTER_HORIZONTAL;
+                    lp.topMargin = 8;
+                    balanceTv.setLayoutParams(lp);
                     listLayout.addView(balanceTv);
                 }
 
