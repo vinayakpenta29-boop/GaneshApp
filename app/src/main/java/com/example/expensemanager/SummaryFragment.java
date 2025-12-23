@@ -286,6 +286,9 @@ public class SummaryFragment extends Fragment {
                 card.setRadius(32);
                 card.setCardElevation(6);
                 card.setUseCompatPadding(true);
+                card.setCardBackgroundColor(android.graphics.Color.TRANSPARENT);
+                card.setPreventCornerOverlap(false);
+                card.setBackgroundResource(R.drawable.bg_summary_card);
 
                 LinearLayout listLayout = new LinearLayout(getContext());
                 listLayout.setOrientation(LinearLayout.VERTICAL);
@@ -428,6 +431,9 @@ public class SummaryFragment extends Fragment {
                 card.setRadius(32);
                 card.setCardElevation(6);
                 card.setUseCompatPadding(true);
+                card.setCardBackgroundColor(android.graphics.Color.TRANSPARENT);
+                card.setPreventCornerOverlap(false);
+                card.setBackgroundResource(R.drawable.bg_summary_card);
 
                 LinearLayout listLayout = new LinearLayout(getContext());
                 listLayout.setOrientation(LinearLayout.VERTICAL);
