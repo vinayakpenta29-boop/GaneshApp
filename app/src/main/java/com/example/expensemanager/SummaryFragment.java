@@ -516,6 +516,21 @@ public class SummaryFragment extends Fragment {
                     balanceTv.setGravity(Gravity.CENTER_HORIZONTAL);
                     listLayout.addView(balanceTv);
                 }
+                // For Commission category show Balance AFTER Commission‑source expenses
+                else if ("Commission".equals(currentCategoryFilter)) {
+                    double incomeCommission = getIncomeTotalForCategoryMonthYear("Commission", month, year);
+                    double expenseFromCommissionSource = getExpenseTotalFromSourceForMonthYear("COMMISSION", month, year);
+                    double commissionBalance = incomeCommission - expenseFromCommissionSource;
+
+                    TextView balanceTv = new TextView(getContext());
+                    balanceTv.setText(String.format(Locale.US, "Balance: ₹%.2f", commissionBalance));
+                    balanceTv.setTextSize(15);
+                    balanceTv.setTextColor(0xFF4CAF50); // green
+                    balanceTv.setTypeface(null, android.graphics.Typeface.BOLD);
+                    balanceTv.setPadding(0, 8, 0, 0);
+                    balanceTv.setGravity(Gravity.CENTER_HORIZONTAL);
+                    listLayout.addView(balanceTv);
+                }
 
                 card.addView(listLayout);
                 monthlyCardsContainer.addView(card);
