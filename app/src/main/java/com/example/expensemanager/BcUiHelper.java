@@ -22,7 +22,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -39,7 +38,8 @@ public class BcUiHelper {
         return Math.round(dp * density);
     }
 
-    // Show BC / EMI menu; caller decides which tab it is
+    // Legacy menu – kept only if still used somewhere else
+    // (Income/Expenses fragments now build their own popup with ownerTab)
     public static void showBcMenu(Fragment fragment, View anchor) {
         android.widget.PopupMenu menu =
                 new android.widget.PopupMenu(fragment.getContext(), anchor);
@@ -51,14 +51,13 @@ public class BcUiHelper {
         menu.setOnMenuItemClickListener(item -> {
             String title = item.getTitle().toString();
             if ("Add BC".equals(title)) {
-                // caller must pass ownerTab when BC is added
-                showAddBcDialog(fragment, null, null);
+                showAddBcDialog(fragment, "INCOME", null);
             } else if ("View BC List".equals(title)) {
-                showBcListDialog(fragment);
+                showBcListDialog(fragment, "INCOME");
             } else if ("Add EMI".equals(title)) {
-                EmiUiHelper.showAddEmiDialog(fragment, null, null);
+                EmiUiHelper.showAddEmiDialog(fragment, "INCOME", null);
             } else if ("View EMI List".equals(title)) {
-                EmiUiHelper.showEmiListDialog(fragment);
+                EmiUiHelper.showEmiListDialog(fragment, "INCOME");
             }
             return true;
         });
@@ -75,7 +74,6 @@ public class BcUiHelper {
                                           BcStore.OnBcSelectedListener listener) {
         Context ctx = fragment.requireContext();
 
-        // Filter schemes by owner tab so Income sees only its BCs, same for Expenses
         List<BcScheme> schemes = BcStore.getSchemesForOwner(ownerTab);
         if (schemes.isEmpty()) {
             Toast.makeText(ctx, "No BC schemes found", Toast.LENGTH_SHORT).show();
@@ -86,10 +84,8 @@ public class BcUiHelper {
         List<String> ids = new ArrayList<>();
 
         for (BcScheme s : schemes) {
-            // bcMap key is already encoded in id; here we just show name
-            String label = s.name;
-            labels.add(label);
-            ids.add(s.id); // key|name
+            labels.add(s.name);
+            ids.add(s.id);
         }
 
         String[] items = labels.toArray(new String[0]);
@@ -321,7 +317,6 @@ public class BcUiHelper {
                     if (!TextUtils.isEmpty(ownerTab)) {
                         scheme.ownerTab = ownerTab;
                     } else {
-                        // default for old calls: INCOME
                         scheme.ownerTab = "INCOME";
                     }
 
@@ -350,7 +345,8 @@ public class BcUiHelper {
         }
     }
 
-    public static void showBcListDialog(Fragment fragment) {
+    // NEW: List dialog that filters by ownerTab
+    public static void showBcListDialog(Fragment fragment, String ownerTab) {
         Context ctx = fragment.requireContext();
 
         LinearLayout listLayout = new LinearLayout(ctx);
@@ -358,26 +354,21 @@ public class BcUiHelper {
         int pad = dpToPx(fragment, 16);
         listLayout.setPadding(pad, pad, pad, pad);
 
-        HashMap<String, ArrayList<BcScheme>> bcMap = BcStore.getBcMap();
+        List<BcScheme> schemes = BcStore.getSchemesForOwner(ownerTab);
 
-        if (bcMap.isEmpty()) {
+        if (schemes.isEmpty()) {
             TextView tv = new TextView(ctx);
             tv.setText("No BC schemes found");
             tv.setGravity(Gravity.CENTER);
             listLayout.addView(tv);
         } else {
-            for (String key : bcMap.keySet()) {
-                ArrayList<BcScheme> list = bcMap.get(key);
-                if (list == null) continue;
-
-                for (BcScheme scheme : list) {
-                    Button btn = new Button(ctx);
-                    btn.setText(scheme.name);
-                    btn.setOnClickListener(v ->
-                            showBcDetailsDialog(fragment, scheme)
-                    );
-                    listLayout.addView(btn);
-                }
+            for (BcScheme scheme : schemes) {
+                Button btn = new Button(ctx);
+                btn.setText(scheme.name);
+                btn.setOnClickListener(v ->
+                        showBcDetailsDialog(fragment, scheme)
+                );
+                listLayout.addView(btn);
             }
         }
 
