@@ -90,13 +90,13 @@ public class ExpensesFragment extends Fragment {
                     BcUiHelper.showAddBcDialog(ExpensesFragment.this, "EXPENSE", null);
                     return true;
                 } else if (id == 2) {
-                    BcUiHelper.showBcListDialog(ExpensesFragment.this);
+                    BcUiHelper.showBcListDialog(ExpensesFragment.this, "EXPENSE");
                     return true;
                 } else if (id == 3) {                  // Add EMI owned by EXPENSE tab
                     EmiUiHelper.showAddEmiDialog(ExpensesFragment.this, "EXPENSE", null);
                     return true;
                 } else if (id == 4) {
-                    EmiUiHelper.showEmiListDialog(ExpensesFragment.this);
+                    EmiUiHelper.showEmiListDialog(ExpensesFragment.this, "EXPENSE");
                     return true;
                 } else if (id == 5) {
                     SchemeDeleteHelper.showDeleteDialog(ExpensesFragment.this);
