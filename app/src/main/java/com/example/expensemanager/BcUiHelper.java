@@ -50,6 +50,7 @@ public class BcUiHelper {
 
         menu.setOnMenuItemClickListener(item -> {
             String title = item.getTitle().toString();
+            String ownerTab = "INCOME";
             if ("Add BC".equals(title)) {
                 showAddBcDialog(fragment, "INCOME", null);
             } else if ("View BC List".equals(title)) {
