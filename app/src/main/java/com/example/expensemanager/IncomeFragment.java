@@ -66,17 +66,27 @@ public class IncomeFragment extends Fragment {
         // Three dots menu: BC/EMI menu + Delete option (Income ownerTab)
         ivMenu.setOnClickListener(v -> {
             android.widget.PopupMenu popup = new android.widget.PopupMenu(requireContext(), ivMenu);
-            popup.getMenu().add(0, 1, 0, "BC / EMI Menu");
-            popup.getMenu().add(0, 2, 1, "Delete");
+            popup.getMenu().add(0, 1, 0, "Add BC");
+            popup.getMenu().add(0, 2, 1, "View BC List");
+            popup.getMenu().add(0, 3, 2, "Add EMI");
+            popup.getMenu().add(0, 4, 3, "View EMI List");
+            popup.getMenu().add(0, 5, 4, "Delete");
 
             popup.setOnMenuItemClickListener((MenuItem item) -> {
                 int id = item.getItemId();
-                if (id == 1) {
-                    // For Income tab: add BC/EMI with ownerTab = INCOME
+                if (id == 1) {                         // Add BC owned by INCOME tab
                     BcUiHelper.showAddBcDialog(IncomeFragment.this, "INCOME", null);
+                    return true;
+                } else if (id == 2) {                  // View BC List (all BC schemes)
+                    BcUiHelper.showBcListDialog(IncomeFragment.this);
+                    return true;
+                } else if (id == 3) {                  // Add EMI owned by INCOME tab
                     EmiUiHelper.showAddEmiDialog(IncomeFragment.this, "INCOME", null);
                     return true;
-                } else if (id == 2) {
+                } else if (id == 4) {                  // View EMI List (all EMI schemes)
+                    EmiUiHelper.showEmiListDialog(IncomeFragment.this);
+                    return true;
+                } else if (id == 5) {                  // Delete schemes
                     SchemeDeleteHelper.showDeleteDialog(IncomeFragment.this);
                     return true;
                 }
