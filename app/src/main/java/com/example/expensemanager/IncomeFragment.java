@@ -78,13 +78,13 @@ public class IncomeFragment extends Fragment {
                     BcUiHelper.showAddBcDialog(IncomeFragment.this, "INCOME", null);
                     return true;
                 } else if (id == 2) {                  // View BC List (all BC schemes)
-                    BcUiHelper.showBcListDialog(IncomeFragment.this, "EXPENSE");
+                    BcUiHelper.showBcListDialog(IncomeFragment.this, "INCOME");
                     return true;
                 } else if (id == 3) {                  // Add EMI owned by INCOME tab
                     EmiUiHelper.showAddEmiDialog(IncomeFragment.this, "INCOME", null);
                     return true;
                 } else if (id == 4) {                  // View EMI List (all EMI schemes)
-                    EmiUiHelper.showEmiListDialog(IncomeFragment.this, "EXPENSE");
+                    EmiUiHelper.showEmiListDialog(IncomeFragment.this, "INCOME");
                     return true;
                 } else if (id == 5) {                  // Delete schemes
                     SchemeDeleteHelper.showDeleteDialog(IncomeFragment.this);
