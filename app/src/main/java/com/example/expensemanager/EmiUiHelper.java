@@ -39,7 +39,7 @@ public class EmiUiHelper {
         return Math.round(dp * density);
     }
 
-    // Add EMI + View EMI List into existing BC menu
+    // Simple menu; caller can still use it but should pass ownerTab into showAddEmiDialog
     public static void showEmiMenu(Fragment fragment, View anchor) {
         android.widget.PopupMenu menu =
                 new android.widget.PopupMenu(fragment.getContext(), anchor);
@@ -49,7 +49,8 @@ public class EmiUiHelper {
         menu.setOnMenuItemClickListener(item -> {
             String title = item.getTitle().toString();
             if ("Add EMI".equals(title)) {
-                showAddEmiDialog(fragment, null);
+                // default ownerTab when called this way
+                showAddEmiDialog(fragment, "EXPENSE", null);
             } else if ("View EMI List".equals(title)) {
                 showEmiListDialog(fragment);
             }
@@ -58,13 +59,19 @@ public class EmiUiHelper {
         menu.show();
     }
 
-    // Used when category = EMI (select which EMI scheme)
+    /**
+     * Used when category = EMI (select which EMI scheme).
+     *
+     * @param ownerTab "INCOME" when called from Income tab, "EXPENSE" from Expenses tab.
+     */
     public static void showSelectEmiDialog(Fragment fragment,
+                                           String ownerTab,
                                            EmiStore.OnEmiSelectedListener listener) {
         Context ctx = fragment.requireContext();
-        HashMap<String, ArrayList<EmiScheme>> emiMap = EmiStore.getEmiMap();
 
-        if (emiMap.isEmpty()) {
+        // Filter by owner tab so Income and Expenses see different EMI lists
+        List<EmiScheme> schemes = EmiStore.getSchemesForOwner(ownerTab);
+        if (schemes.isEmpty()) {
             Toast.makeText(ctx, "No EMI schemes found", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -72,22 +79,10 @@ public class EmiUiHelper {
         List<String> labels = new ArrayList<>();
         List<String> ids = new ArrayList<>();
 
-        for (String key : emiMap.keySet()) {
-            ArrayList<EmiScheme> list = emiMap.get(key);
-            if (list == null) continue;
-
-            for (EmiScheme s : list) {
-                String label = ("_GLOBAL_".equals(key) || TextUtils.isEmpty(key))
-                        ? s.name
-                        : key + " - " + s.name;
-                labels.add(label);
-                ids.add(s.id);
-            }
-        }
-
-        if (labels.isEmpty()) {
-            Toast.makeText(ctx, "No EMI schemes found", Toast.LENGTH_SHORT).show();
-            return;
+        for (EmiScheme s : schemes) {
+            String label = s.name;
+            labels.add(label);
+            ids.add(s.id);
         }
 
         String[] items = labels.toArray(new String[0]);
@@ -101,8 +96,14 @@ public class EmiUiHelper {
                 .show();
     }
 
-    // ADD EMI (like Add BC)
-    public static void showAddEmiDialog(Fragment fragment, OnEmiAddedListener listener) {
+    /**
+     * ADD EMI (like Add BC).
+     *
+     * @param ownerTab "INCOME" or "EXPENSE" so scheme is tagged for the correct tab.
+     */
+    public static void showAddEmiDialog(Fragment fragment,
+                                        String ownerTab,
+                                        OnEmiAddedListener listener) {
         Context ctx = fragment.requireContext();
 
         LinearLayout root = new LinearLayout(ctx);
@@ -305,6 +306,14 @@ public class EmiUiHelper {
                     } else {
                         scheme.fixedAmount = 0;
                         scheme.monthlyAmounts.clear();
+                    }
+
+                    // tag owner tab for separation between Income and Expenses
+                    if (!TextUtils.isEmpty(ownerTab)) {
+                        scheme.ownerTab = ownerTab;
+                    } else {
+                        // default for old calls
+                        scheme.ownerTab = "EXPENSE";
                     }
 
                     String key = TextUtils.isEmpty(accountName) ? "_GLOBAL_" : accountName;
