@@ -78,17 +78,27 @@ public class ExpensesFragment extends Fragment {
         // Three dots menu: BC/EMI menu + Delete option (Expenses ownerTab)
         ivMenu.setOnClickListener(v -> {
             android.widget.PopupMenu popup = new android.widget.PopupMenu(requireContext(), ivMenu);
-            popup.getMenu().add(0, 1, 0, "BC / EMI Menu");
-            popup.getMenu().add(0, 2, 1, "Delete");
+            popup.getMenu().add(0, 1, 0, "Add BC");
+            popup.getMenu().add(0, 2, 1, "View BC List");
+            popup.getMenu().add(0, 3, 2, "Add EMI");
+            popup.getMenu().add(0, 4, 3, "View EMI List");
+            popup.getMenu().add(0, 5, 4, "Delete");
 
             popup.setOnMenuItemClickListener((MenuItem item) -> {
                 int id = item.getItemId();
-                if (id == 1) {
-                    // For Expenses tab: add BC/EMI with ownerTab = EXPENSE
+                if (id == 1) {                         // Add BC owned by EXPENSE tab
                     BcUiHelper.showAddBcDialog(ExpensesFragment.this, "EXPENSE", null);
-                    EmiUiHelper.showAddEmiDialog(ExpensesFragment.this, "EXPENSE", null);
                     return true;
                 } else if (id == 2) {
+                    BcUiHelper.showBcListDialog(ExpensesFragment.this);
+                    return true;
+                } else if (id == 3) {                  // Add EMI owned by EXPENSE tab
+                    EmiUiHelper.showAddEmiDialog(ExpensesFragment.this, "EXPENSE", null);
+                    return true;
+                } else if (id == 4) {
+                    EmiUiHelper.showEmiListDialog(ExpensesFragment.this);
+                    return true;
+                } else if (id == 5) {
                     SchemeDeleteHelper.showDeleteDialog(ExpensesFragment.this);
                     return true;
                 }
