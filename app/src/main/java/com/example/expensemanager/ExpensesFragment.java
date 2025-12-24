@@ -115,8 +115,8 @@ public class ExpensesFragment extends Fragment {
 
         spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View v, long id, long itemId) {
-                String cat = categories.get((int) id);
+            public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
+                String cat = categories.get(position);
 
                 if ("Select Category".equals(cat)) {
                     selectedBcId = null;
