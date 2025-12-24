@@ -52,13 +52,13 @@ public class BcUiHelper {
             String title = item.getTitle().toString();
             String ownerTab = "INCOME";
             if ("Add BC".equals(title)) {
-                showAddBcDialog(fragment, "INCOME", null);
+                showAddBcDialog(fragment, ownerTab, null);
             } else if ("View BC List".equals(title)) {
-                showBcListDialog(fragment, "INCOME");
+                showBcListDialog(fragment, ownerTab);
             } else if ("Add EMI".equals(title)) {
-                EmiUiHelper.showAddEmiDialog(fragment, "INCOME", null);
+                EmiUiHelper.showAddEmiDialog(fragment, ownerTab, null);
             } else if ("View EMI List".equals(title)) {
-                EmiUiHelper.showEmiListDialog(fragment, "INCOME");
+                EmiUiHelper.showEmiListDialog(fragment, ownerTab);
             }
             return true;
         });
