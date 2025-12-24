@@ -32,6 +32,7 @@
             android:padding="4dp" />
     </LinearLayout>
 
+    <!-- Month / Year row -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -43,88 +44,101 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
             app:cardCornerRadius="18dp"
-            app:cardElevation="2dp"
-            android:layout_marginEnd="4dp">
+            app:cardElevation="4dp"
+            app:cardUseCompatPadding="true">
+
             <EditText
                 android:id="@+id/et_income_month"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Enter Month (1-12)"
                 android:inputType="number"
-                android:background="@drawable/bg_summary_card_for_input_box"
+                android:background="@android:color/transparent"
                 android:textColor="@android:color/black"
                 android:textColorHint="#88000000"
-                android:padding="14dp"/>
+                android:padding="14dp" />
         </androidx.cardview.widget.CardView>
 
         <androidx.cardview.widget.CardView
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
             app:cardCornerRadius="18dp"
-            app:cardElevation="2dp"
-            android:layout_marginStart="4dp">
+            app:cardElevation="4dp"
+            app:cardUseCompatPadding="true">
+
             <EditText
                 android:id="@+id/et_income_year"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Enter Year"
                 android:inputType="number"
-                android:background="@drawable/bg_summary_card_for_input_box"
+                android:background="@android:color/transparent"
                 android:textColor="@android:color/black"
                 android:textColorHint="#88000000"
-                android:padding="14dp"/>
+                android:padding="14dp" />
         </androidx.cardview.widget.CardView>
     </LinearLayout>
 
+    <!-- Note -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
         app:cardCornerRadius="18dp"
-        app:cardElevation="2dp"
-        android:layout_marginBottom="12dp">
+        app:cardElevation="4dp"
+        app:cardUseCompatPadding="true">
+
         <EditText
             android:id="@+id/et_income_note"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Note"
-            android:background="@drawable/bg_summary_card_for_input_box"
+            android:background="@android:color/transparent"
             android:textColor="@android:color/black"
             android:textColorHint="#88000000"
-            android:padding="14dp"/>
+            android:padding="14dp" />
     </androidx.cardview.widget.CardView>
 
+    <!-- Amount -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
         app:cardCornerRadius="18dp"
-        app:cardElevation="2dp"
-        android:layout_marginBottom="12dp">
+        app:cardElevation="4dp"
+        app:cardUseCompatPadding="true">
+
         <EditText
             android:id="@+id/et_income_amount"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Amount"
             android:inputType="numberDecimal"
-            android:background="@drawable/bg_summary_card_for_input_box"
+            android:background="@android:color/transparent"
             android:textColor="@android:color/black"
             android:textColorHint="#88000000"
-            android:padding="14dp"/>
+            android:padding="14dp" />
     </androidx.cardview.widget.CardView>
 
-    <!-- New category box, same style as Expenses tab -->
+    <!-- Category -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
         app:cardCornerRadius="18dp"
-        app:cardElevation="2dp"
-        android:layout_marginBottom="12dp">
+        app:cardElevation="4dp"
+        app:cardUseCompatPadding="true">
+
         <Spinner
             android:id="@+id/spinner_income_category"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="14dp"/>
+            android:background="@android:color/transparent"
+            android:padding="14dp" />
     </androidx.cardview.widget.CardView>
 
     <Button
@@ -136,19 +150,22 @@
         android:textAllCaps="true"
         android:textColor="@android:color/white"
         android:background="@drawable/curved_purple_button"
-        android:layout_marginBottom="18dp"/>
+        android:layout_marginBottom="18dp" />
 
+    <!-- List card -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         app:cardCornerRadius="22dp"
-        app:cardElevation="3dp">
+        app:cardElevation="4dp"
+        app:cardUseCompatPadding="true">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_income"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="8dp"/>
+            android:padding="8dp" />
     </androidx.cardview.widget.CardView>
+
 </LinearLayout>
