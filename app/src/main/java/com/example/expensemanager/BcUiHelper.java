@@ -39,7 +39,7 @@ public class BcUiHelper {
         return Math.round(dp * density);
     }
 
-    // Show only Add BC and View BC List in popup
+    // Show BC / EMI menu; caller decides which tab it is
     public static void showBcMenu(Fragment fragment, View anchor) {
         android.widget.PopupMenu menu =
                 new android.widget.PopupMenu(fragment.getContext(), anchor);
@@ -51,11 +51,12 @@ public class BcUiHelper {
         menu.setOnMenuItemClickListener(item -> {
             String title = item.getTitle().toString();
             if ("Add BC".equals(title)) {
-                showAddBcDialog(fragment, null);
+                // caller must pass ownerTab when BC is added
+                showAddBcDialog(fragment, null, null);
             } else if ("View BC List".equals(title)) {
                 showBcListDialog(fragment);
             } else if ("Add EMI".equals(title)) {
-                EmiUiHelper.showAddEmiDialog(fragment, null);
+                EmiUiHelper.showAddEmiDialog(fragment, null, null);
             } else if ("View EMI List".equals(title)) {
                 EmiUiHelper.showEmiListDialog(fragment);
             }
@@ -64,13 +65,19 @@ public class BcUiHelper {
         menu.show();
     }
 
-    // Dialog used when category = BC (select which BC scheme)
+    /**
+     * Dialog used when category = BC (select which BC scheme).
+     *
+     * @param ownerTab "INCOME" when called from Income tab, "EXPENSE" from Expenses tab.
+     */
     public static void showSelectBcDialog(Fragment fragment,
+                                          String ownerTab,
                                           BcStore.OnBcSelectedListener listener) {
         Context ctx = fragment.requireContext();
-        HashMap<String, ArrayList<BcScheme>> bcMap = BcStore.getBcMap();
 
-        if (bcMap.isEmpty()) {
+        // Filter schemes by owner tab so Income sees only its BCs, same for Expenses
+        List<BcScheme> schemes = BcStore.getSchemesForOwner(ownerTab);
+        if (schemes.isEmpty()) {
             Toast.makeText(ctx, "No BC schemes found", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -78,22 +85,11 @@ public class BcUiHelper {
         List<String> labels = new ArrayList<>();
         List<String> ids = new ArrayList<>();
 
-        for (String key : bcMap.keySet()) {
-            ArrayList<BcScheme> list = bcMap.get(key);
-            if (list == null) continue;
-
-            for (BcScheme s : list) {
-                String label = ("_GLOBAL_".equals(key) || TextUtils.isEmpty(key))
-                        ? s.name
-                        : key + " - " + s.name;
-                labels.add(label);
-                ids.add(s.id); // key|name
-            }
-        }
-
-        if (labels.isEmpty()) {
-            Toast.makeText(ctx, "No BC schemes found", Toast.LENGTH_SHORT).show();
-            return;
+        for (BcScheme s : schemes) {
+            // bcMap key is already encoded in id; here we just show name
+            String label = s.name;
+            labels.add(label);
+            ids.add(s.id); // key|name
         }
 
         String[] items = labels.toArray(new String[0]);
@@ -109,7 +105,14 @@ public class BcUiHelper {
                 .show();
     }
 
-    public static void showAddBcDialog(Fragment fragment, OnBcAddedListener listener) {
+    /**
+     * Add BC dialog.
+     *
+     * @param ownerTab "INCOME" or "EXPENSE" so the scheme is tagged correctly.
+     */
+    public static void showAddBcDialog(Fragment fragment,
+                                       String ownerTab,
+                                       OnBcAddedListener listener) {
         Context ctx = fragment.requireContext();
 
         LinearLayout root = new LinearLayout(ctx);
@@ -312,6 +315,14 @@ public class BcUiHelper {
                     } else {
                         scheme.fixedAmount = 0;
                         scheme.monthlyAmounts.clear();
+                    }
+
+                    // tag owner tab so schemes do not mix between Income and Expenses
+                    if (!TextUtils.isEmpty(ownerTab)) {
+                        scheme.ownerTab = ownerTab;
+                    } else {
+                        // default for old calls: INCOME
+                        scheme.ownerTab = "INCOME";
                     }
 
                     String key = TextUtils.isEmpty(accountName) ? "_GLOBAL_" : accountName;
