@@ -48,11 +48,12 @@ public class EmiUiHelper {
 
         menu.setOnMenuItemClickListener(item -> {
             String title = item.getTitle().toString();
+            String ownerTab = "INCOME";
             if ("Add EMI".equals(title)) {
                 // default ownerTab when called this way
-                showAddEmiDialog(fragment, "EXPENSE", null);
+                showAddEmiDialog(fragment, ownerTab, null);
             } else if ("View EMI List".equals(title)) {
-                showEmiListDialog(fragment);
+                showEmiListDialog(fragment, ownerTab);
             }
             return true;
         });
@@ -357,7 +358,7 @@ public class EmiUiHelper {
             tv.setGravity(Gravity.CENTER);
             listLayout.addView(tv);
         } else {
-            for (EmiScheme scheme : list) {
+            for (EmiScheme scheme : schemes) {
                 Button btn = new Button(ctx);
                 btn.setText(scheme.name);
                 btn.setOnClickListener(v ->
