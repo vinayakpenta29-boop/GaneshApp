@@ -63,22 +63,20 @@ public class IncomeFragment extends Fragment {
         BcStore.load(requireContext());
         EmiStore.load(requireContext());
 
-        // Three dots menu: existing BC/EMI menu + new Delete option
+        // Three dots menu: BC/EMI menu + Delete option (Income ownerTab)
         ivMenu.setOnClickListener(v -> {
             android.widget.PopupMenu popup = new android.widget.PopupMenu(requireContext(), ivMenu);
-            // Existing menu item
             popup.getMenu().add(0, 1, 0, "BC / EMI Menu");
-            // New delete item
             popup.getMenu().add(0, 2, 1, "Delete");
 
             popup.setOnMenuItemClickListener((MenuItem item) -> {
                 int id = item.getItemId();
                 if (id == 1) {
-                    // Old behavior – keep using your existing helper
-                    BcUiHelper.showBcMenu(IncomeFragment.this, ivMenu);
+                    // For Income tab: add BC/EMI with ownerTab = INCOME
+                    BcUiHelper.showAddBcDialog(IncomeFragment.this, "INCOME", null);
+                    EmiUiHelper.showAddEmiDialog(IncomeFragment.this, "INCOME", null);
                     return true;
                 } else if (id == 2) {
-                    // New delete flow: show BC/EMI delete dialog
                     SchemeDeleteHelper.showDeleteDialog(IncomeFragment.this);
                     return true;
                 }
@@ -108,7 +106,6 @@ public class IncomeFragment extends Fragment {
                 String cat = categories.get(pos);
 
                 if ("Select Category".equals(cat)) {
-                    // Treat as no selection
                     selectedBcId = null;
                     selectedEmiId = null;
                     return;
@@ -119,15 +116,22 @@ public class IncomeFragment extends Fragment {
                     selectedBcId = null;
                     selectedEmiId = null;
                 } else if ("BC".equals(cat)) {
-                    // Ask which BC scheme this income belongs to
+                    // Only Income‑owned BC schemes
                     selectedEmiId = null;
-                    BcUiHelper.showSelectBcDialog(IncomeFragment.this, bcId -> selectedBcId = bcId);
+                    BcUiHelper.showSelectBcDialog(
+                            IncomeFragment.this,
+                            "INCOME",
+                            bcId -> selectedBcId = bcId
+                    );
                 } else if ("EMI".equals(cat)) {
-                    // Ask which EMI scheme this income belongs to
+                    // Only Income‑owned EMI schemes
                     selectedBcId = null;
-                    EmiUiHelper.showSelectEmiDialog(IncomeFragment.this, emiId -> selectedEmiId = emiId);
+                    EmiUiHelper.showSelectEmiDialog(
+                            IncomeFragment.this,
+                            "INCOME",
+                            emiId -> selectedEmiId = emiId
+                    );
                 } else {
-                    // Normal category, no BC/EMI link
                     selectedBcId = null;
                     selectedEmiId = null;
                 }
@@ -206,7 +210,6 @@ public class IncomeFragment extends Fragment {
                             protected Void doInBackground(Void... voids) {
 
                                 // Decide sourceType for this income
-                                // Only Salary income needs SALARY tag so we can match Salary‑radio expenses.
                                 String sourceType;
                                 if ("Salary".equals(category)) {
                                     sourceType = "SALARY";
@@ -216,16 +219,13 @@ public class IncomeFragment extends Fragment {
                                     sourceType = null;
                                 }
 
-                                // Use new 7‑arg insert so source_type is stored
                                 db.insertTransaction("income", amount, note, month, year, category, sourceType);
 
-                                // If this income belongs to a BC scheme, mark one BC installment done
                                 if ("BC".equals(category) && selectedBcId != null) {
                                     BcStore.markBcInstallmentDone(selectedBcId, null);
                                     BcStore.save(requireContext());
                                 }
 
-                                // If this income belongs to an EMI scheme, mark one EMI installment done
                                 if ("EMI".equals(category) && selectedEmiId != null) {
                                     EmiStore.markEmiInstallmentDone(selectedEmiId, null);
                                     EmiStore.save(requireContext());
@@ -241,8 +241,7 @@ public class IncomeFragment extends Fragment {
                                 etAmount.setText("");
                                 etNote.setText("");
 
-                                // Reset category and scheme ids after each add
-                                spinnerCategory.setSelection(0); // back to "Select Category"
+                                spinnerCategory.setSelection(0);
                                 selectedBcId = null;
                                 selectedEmiId = null;
 
@@ -275,7 +274,6 @@ public class IncomeFragment extends Fragment {
                 .setPositiveButton("OK", (d, w) -> {
                     String newCat = input.getText().toString().trim();
                     if (!newCat.isEmpty() && !categories.contains(newCat)) {
-                        // Insert before "Other"
                         int insertIndex = Math.max(categories.indexOf("Other"), 1);
                         categories.add(insertIndex, newCat);
                         categoryAdapter.notifyDataSetChanged();
