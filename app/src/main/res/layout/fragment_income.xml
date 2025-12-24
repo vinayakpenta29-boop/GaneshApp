@@ -42,12 +42,15 @@
 
         <androidx.cardview.widget.CardView
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:layout_marginEnd="4dp"
+            android:background="@drawable/bg_summary_card"
+            app:cardBackgroundColor="@android:color/transparent"
             app:cardCornerRadius="18dp"
             app:cardElevation="4dp"
-            app:cardUseCompatPadding="true">
+            app:cardUseCompatPadding="false"
+            app:cardPreventCornerOverlap="false">
 
             <EditText
                 android:id="@+id/et_income_month"
@@ -63,12 +66,15 @@
 
         <androidx.cardview.widget.CardView
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:layout_marginStart="4dp"
+            android:background="@drawable/bg_summary_card"
+            app:cardBackgroundColor="@android:color/transparent"
             app:cardCornerRadius="18dp"
             app:cardElevation="4dp"
-            app:cardUseCompatPadding="true">
+            app:cardUseCompatPadding="false"
+            app:cardPreventCornerOverlap="false">
 
             <EditText
                 android:id="@+id/et_income_year"
@@ -88,9 +94,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_summary_card"
+        app:cardBackgroundColor="@android:color/transparent"
         app:cardCornerRadius="18dp"
         app:cardElevation="4dp"
-        app:cardUseCompatPadding="true">
+        app:cardUseCompatPadding="false"
+        app:cardPreventCornerOverlap="false">
 
         <EditText
             android:id="@+id/et_income_note"
@@ -108,9 +117,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_summary_card"
+        app:cardBackgroundColor="@android:color/transparent"
         app:cardCornerRadius="18dp"
         app:cardElevation="4dp"
-        app:cardUseCompatPadding="true">
+        app:cardUseCompatPadding="false"
+        app:cardPreventCornerOverlap="false">
 
         <EditText
             android:id="@+id/et_income_amount"
@@ -129,9 +141,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_summary_card"
+        app:cardBackgroundColor="@android:color/transparent"
         app:cardCornerRadius="18dp"
         app:cardElevation="4dp"
-        app:cardUseCompatPadding="true">
+        app:cardUseCompatPadding="false"
+        app:cardPreventCornerOverlap="false">
 
         <Spinner
             android:id="@+id/spinner_income_category"
@@ -157,9 +172,12 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:background="@drawable/bg_summary_card"
+        app:cardBackgroundColor="@android:color/transparent"
         app:cardCornerRadius="22dp"
         app:cardElevation="4dp"
-        app:cardUseCompatPadding="true">
+        app:cardUseCompatPadding="false"
+        app:cardPreventCornerOverlap="false">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_income"
