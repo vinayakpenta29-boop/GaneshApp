@@ -37,6 +37,9 @@ public class EmiStore {
         public String installmentType = "NONE";  // FIXED / RANDOM / NONE
         public int fixedAmount = 0;
         public List<Integer> monthlyAmounts = new ArrayList<>();
+
+        // NEW: which tab owns this scheme: "INCOME" or "EXPENSE"
+        public String ownerTab = "EXPENSE";
     }
 
     private static final String PREFS_NAME = "ExpenseManagerPrefs";
@@ -49,7 +52,7 @@ public class EmiStore {
         return emiMap;
     }
 
-    /** New: get all EMI schemes as a flat list (used by delete dialog) */
+    /** Get all EMI schemes as a flat list (used by delete dialog) */
     public static List<EmiScheme> getAllSchemes() {
         List<EmiScheme> all = new ArrayList<>();
         for (String key : emiMap.keySet()) {
@@ -61,6 +64,22 @@ public class EmiStore {
         return all;
     }
 
+    // NEW: get schemes only for a given owner tab ("INCOME" or "EXPENSE")
+    public static List<EmiScheme> getSchemesForOwner(String ownerTab) {
+        List<EmiScheme> result = new ArrayList<>();
+        if (TextUtils.isEmpty(ownerTab)) return result;
+        for (String key : emiMap.keySet()) {
+            ArrayList<EmiScheme> list = emiMap.get(key);
+            if (list == null) continue;
+            for (EmiScheme s : list) {
+                if (ownerTab.equals(s.ownerTab)) {
+                    result.add(s);
+                }
+            }
+        }
+        return result;
+    }
+
     public static void addScheme(String key, EmiScheme scheme) {
         ArrayList<EmiScheme> list = emiMap.get(key);
         if (list == null) {
@@ -70,6 +89,7 @@ public class EmiStore {
         if (TextUtils.isEmpty(scheme.id)) {
             scheme.id = key + "|" + scheme.name;
         }
+        // ownerTab must be set by caller (IncomeFragment / ExpensesFragment)
         list.add(scheme);
     }
 
@@ -152,6 +172,9 @@ public class EmiStore {
                     }
                     o.put("monthlyAmounts", amts);
 
+                    // NEW: persist owner tab
+                    o.put("ownerTab", s.ownerTab);
+
                     arr.put(o);
                 }
                 root.put(key, arr);
@@ -203,6 +226,9 @@ public class EmiStore {
                             s.monthlyAmounts.add(amts.getInt(j));
                         }
                     }
+
+                    // NEW: load owner tab (default EXPENSE for old data)
+                    s.ownerTab = o.optString("ownerTab", "EXPENSE");
 
                     list.add(s);
                 }
