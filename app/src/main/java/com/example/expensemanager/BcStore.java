@@ -30,6 +30,9 @@ public class BcStore {
         public String installmentType = "NONE";
         public int fixedAmount = 0;
         public List<Integer> monthlyAmounts = new ArrayList<>();
+
+        // NEW: which tab owns this scheme: "INCOME" or "EXPENSE"
+        public String ownerTab = "INCOME";
     }
 
     private static final String PREFS_NAME = "ExpenseManagerPrefs";
@@ -40,7 +43,7 @@ public class BcStore {
         return bcMap;
     }
 
-    /** New: get all BC schemes as a flat list (used by delete dialog) */
+    /** Get all BC schemes as a flat list (used by delete dialog) */
     public static List<BcScheme> getAllSchemes() {
         List<BcScheme> all = new ArrayList<>();
         for (String key : bcMap.keySet()) {
@@ -52,6 +55,22 @@ public class BcStore {
         return all;
     }
 
+    // NEW: get schemes only for a given owner tab ("INCOME" or "EXPENSE")
+    public static List<BcScheme> getSchemesForOwner(String ownerTab) {
+        List<BcScheme> result = new ArrayList<>();
+        if (TextUtils.isEmpty(ownerTab)) return result;
+        for (String key : bcMap.keySet()) {
+            ArrayList<BcScheme> list = bcMap.get(key);
+            if (list == null) continue;
+            for (BcScheme s : list) {
+                if (ownerTab.equals(s.ownerTab)) {
+                    result.add(s);
+                }
+            }
+        }
+        return result;
+    }
+
     public static void addScheme(String key, BcScheme scheme) {
         ArrayList<BcScheme> list = bcMap.get(key);
         if (list == null) {
@@ -61,6 +80,7 @@ public class BcStore {
         if (TextUtils.isEmpty(scheme.id)) {
             scheme.id = key + "|" + scheme.name;
         }
+        // ownerTab must be set by caller (IncomeFragment / ExpensesFragment)
         list.add(scheme);
     }
 
@@ -75,7 +95,7 @@ public class BcStore {
         }
     }
 
-    /** New helper already present but used by multi‑delete: remove by id anywhere in map */
+    /** Remove by id anywhere in map */
     public static void removeSchemeById(String bcId) {
         if (TextUtils.isEmpty(bcId)) return;
         for (String key : new ArrayList<>(bcMap.keySet())) {
@@ -144,6 +164,9 @@ public class BcStore {
                     }
                     o.put("monthlyAmounts", amts);
 
+                    // NEW: persist owner tab
+                    o.put("ownerTab", s.ownerTab);
+
                     arr.put(o);
                 }
                 root.put(key, arr);
@@ -195,6 +218,9 @@ public class BcStore {
                             s.monthlyAmounts.add(amts.getInt(j));
                         }
                     }
+
+                    // NEW: load owner tab (default INCOME for old data)
+                    s.ownerTab = o.optString("ownerTab", "INCOME");
 
                     list.add(s);
                 }
