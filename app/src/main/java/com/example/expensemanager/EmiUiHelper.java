@@ -341,7 +341,7 @@ public class EmiUiHelper {
         }
     }
 
-    public static void showEmiListDialog(Fragment fragment) {
+    public static void showEmiListDialog(Fragment fragment, String ownerTab) {
         Context ctx = fragment.requireContext();
 
         LinearLayout listLayout = new LinearLayout(ctx);
@@ -349,26 +349,21 @@ public class EmiUiHelper {
         int pad = dpToPx(fragment, 16);
         listLayout.setPadding(pad, pad, pad, pad);
 
-        HashMap<String, ArrayList<EmiScheme>> emiMap = EmiStore.getEmiMap();
+        List<EmiScheme> schemes = EmiStore.getSchemesForOwner(ownerTab);
 
-        if (emiMap.isEmpty()) {
+        if (schemes.isEmpty()) {
             TextView tv = new TextView(ctx);
             tv.setText("No EMI schemes found");
             tv.setGravity(Gravity.CENTER);
             listLayout.addView(tv);
         } else {
-            for (String key : emiMap.keySet()) {
-                ArrayList<EmiScheme> list = emiMap.get(key);
-                if (list == null) continue;
-
-                for (EmiScheme scheme : list) {
-                    Button btn = new Button(ctx);
-                    btn.setText(scheme.name);
-                    btn.setOnClickListener(v ->
-                            showEmiDetailsDialog(fragment, scheme)
-                    );
-                    listLayout.addView(btn);
-                }
+            for (EmiScheme scheme : list) {
+                Button btn = new Button(ctx);
+                btn.setText(scheme.name);
+                btn.setOnClickListener(v ->
+                        showEmiDetailsDialog(fragment, scheme)
+                );
+                listLayout.addView(btn);
             }
         }
 
