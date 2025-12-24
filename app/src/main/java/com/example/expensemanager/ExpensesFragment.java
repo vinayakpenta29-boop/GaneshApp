@@ -75,18 +75,18 @@ public class ExpensesFragment extends Fragment {
         BcStore.load(requireContext());
         EmiStore.load(requireContext());
 
-        // Three dots menu: existing BC/EMI menu + new Delete option
+        // Three dots menu: BC/EMI menu + Delete option (Expenses ownerTab)
         ivMenu.setOnClickListener(v -> {
             android.widget.PopupMenu popup = new android.widget.PopupMenu(requireContext(), ivMenu);
-            // Existing menu item
             popup.getMenu().add(0, 1, 0, "BC / EMI Menu");
-            // New delete item
             popup.getMenu().add(0, 2, 1, "Delete");
 
             popup.setOnMenuItemClickListener((MenuItem item) -> {
                 int id = item.getItemId();
                 if (id == 1) {
-                    BcUiHelper.showBcMenu(ExpensesFragment.this, ivMenu);
+                    // For Expenses tab: add BC/EMI with ownerTab = EXPENSE
+                    BcUiHelper.showAddBcDialog(ExpensesFragment.this, "EXPENSE", null);
+                    EmiUiHelper.showAddEmiDialog(ExpensesFragment.this, "EXPENSE", null);
                     return true;
                 } else if (id == 2) {
                     SchemeDeleteHelper.showDeleteDialog(ExpensesFragment.this);
@@ -115,8 +115,8 @@ public class ExpensesFragment extends Fragment {
 
         spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View v, int pos, long id) {
-                String cat = categories.get(pos);
+            public void onItemSelected(AdapterView<?> parent, View v, long id, long itemId) {
+                String cat = categories.get((int) id);
 
                 if ("Select Category".equals(cat)) {
                     selectedBcId = null;
@@ -130,10 +130,20 @@ public class ExpensesFragment extends Fragment {
                     selectedEmiId = null;
                 } else if ("BC".equals(cat)) {
                     selectedEmiId = null;
-                    BcUiHelper.showSelectBcDialog(ExpensesFragment.this, bcId -> selectedBcId = bcId);
+                    // Only Expenses‑owned BC schemes
+                    BcUiHelper.showSelectBcDialog(
+                            ExpensesFragment.this,
+                            "EXPENSE",
+                            bcId -> selectedBcId = bcId
+                    );
                 } else if ("EMI".equals(cat)) {
                     selectedBcId = null;
-                    EmiUiHelper.showSelectEmiDialog(ExpensesFragment.this, emiId -> selectedEmiId = emiId);
+                    // Only Expenses‑owned EMI schemes
+                    EmiUiHelper.showSelectEmiDialog(
+                            ExpensesFragment.this,
+                            "EXPENSE",
+                            emiId -> selectedEmiId = emiId
+                    );
                 } else {
                     selectedBcId = null;
                     selectedEmiId = null;
@@ -220,16 +230,13 @@ public class ExpensesFragment extends Fragment {
                                 sourceType = "OTHER";
                             }
 
-                            // Use new 7‑arg insert so source_type is stored
                             db.insertTransaction("expense", amount, note, month, year, category, sourceType);
 
-                            // If this expense belongs to a BC scheme, mark one BC installment done
                             if ("BC".equals(category) && selectedBcId != null) {
                                 BcStore.markBcInstallmentDone(selectedBcId, null);
                                 BcStore.save(requireContext());
                             }
 
-                            // If this expense belongs to an EMI scheme, mark one EMI installment done
                             if ("EMI".equals(category) && selectedEmiId != null) {
                                 EmiStore.markEmiInstallmentDone(selectedEmiId, null);
                                 EmiStore.save(requireContext());
@@ -244,12 +251,10 @@ public class ExpensesFragment extends Fragment {
                             etAmount.setText("");
                             etNote.setText("");
 
-                            // Reset category and scheme ids after each add
-                            spinnerCategory.setSelection(0); // back to "Select Category"
+                            spinnerCategory.setSelection(0);
                             selectedBcId = null;
                             selectedEmiId = null;
 
-                            // Reset radio to Other
                             if (rbExpOther != null) {
                                 rbExpOther.setChecked(true);
                             }
@@ -261,7 +266,6 @@ public class ExpensesFragment extends Fragment {
                                 imm.hideSoftInputFromWindow(etNote.getWindowToken(), 0);
                             }
 
-                            // Notify SummaryFragment to refresh
                             Bundle b = new Bundle();
                             b.putBoolean("refresh", true);
                             getParentFragmentManager().setFragmentResult("refresh_summary", b);
@@ -287,7 +291,6 @@ public class ExpensesFragment extends Fragment {
             .setPositiveButton("OK", (d, w) -> {
                 String newCat = input.getText().toString().trim();
                 if (!newCat.isEmpty() && !categories.contains(newCat)) {
-                    // Insert before "Other"
                     int insertIndex = Math.max(categories.indexOf("Other"), 1);
                     categories.add(insertIndex, newCat);
                     categoryAdapter.notifyDataSetChanged();
