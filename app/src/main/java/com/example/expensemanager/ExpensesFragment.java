@@ -1,7 +1,10 @@
 package com.expensemanager;
 
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
@@ -27,6 +30,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
@@ -242,14 +246,34 @@ public class ExpensesFragment extends Fragment {
 
                             db.insertTransaction("expense", amount, note, month, year, category, sourceType);
 
+                            // When BC installment is recorded, mark and schedule next reminder
                             if ("BC".equals(category) && selectedBcId != null) {
                                 BcStore.markBcInstallmentDone(selectedBcId, null);
                                 BcStore.save(requireContext());
+
+                                // Example: reminder on same day next month at 9 AM
+                                scheduleInstallmentReminder(
+                                        requireContext(),
+                                        "BC Installment",
+                                        "Next BC installment is due.",
+                                        year,
+                                        month
+                                );
                             }
 
+                            // When EMI installment is recorded, mark and schedule next reminder
                             if ("EMI".equals(category) && selectedEmiId != null) {
                                 EmiStore.markEmiInstallmentDone(selectedEmiId, null);
                                 EmiStore.save(requireContext());
+
+                                // Example: reminder on same day next month at 9 AM
+                                scheduleInstallmentReminder(
+                                        requireContext(),
+                                        "EMI Installment",
+                                        "Next EMI installment is due.",
+                                        year,
+                                        month
+                                );
                             }
                             return null;
                         }
@@ -291,6 +315,59 @@ public class ExpensesFragment extends Fragment {
         updateList();
 
         return view;
+    }
+
+    /**
+     * Schedules a reminder for the next month on the same day at 9:00 AM.
+     * You can adjust logic (day/time) as needed.
+     */
+    private void scheduleInstallmentReminder(Context context,
+                                             String title,
+                                             String message,
+                                             String currentYear,
+                                             String currentMonth) {
+
+        int year, month;
+        try {
+            year = Integer.parseInt(currentYear);
+            month = Integer.parseInt(currentMonth); // 1‑12
+        } catch (NumberFormatException e) {
+            return;
+        }
+
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.YEAR, year);
+        cal.set(Calendar.MONTH, month - 1); // Calendar is 0‑based
+        int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
+
+        // Move to next month
+        cal.add(Calendar.MONTH, 1);
+        cal.set(Calendar.DAY_OF_MONTH, Math.min(dayOfMonth, cal.getActualMaximum(Calendar.DAY_OF_MONTH)));
+        cal.set(Calendar.HOUR_OF_DAY, 9);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+
+        Intent intent = new Intent(context, EmiReminderReceiver.class);
+        intent.putExtra("title", title);
+        intent.putExtra("message", message);
+
+        int requestCode = (int) System.currentTimeMillis();
+        PendingIntent pi = PendingIntent.getBroadcast(
+                context,
+                requestCode,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager != null) {
+            alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    cal.getTimeInMillis(),
+                    pi
+            );
+        }
     }
 
     private void showAddCategoryDialog() {
