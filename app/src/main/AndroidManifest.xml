@@ -21,16 +21,15 @@
             </intent-filter>
         </activity>
 
-        <!-- Receiver that shows BC/EMI reminders -->
+        <!-- Receiver for EMI reminders -->
         <receiver
             android:name=".EmiReminderReceiver"
             android:exported="false" />
-        <!-- If you create a separate one for BC, register it too -->
-        <!--
+
+        <!-- Receiver for BC reminders -->
         <receiver
             android:name=".BcReminderReceiver"
             android:exported="false" />
-        -->
 
     </application>
 
