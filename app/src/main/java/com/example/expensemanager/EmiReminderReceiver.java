@@ -33,7 +33,7 @@ public class EmiReminderReceiver extends BroadcastReceiver {
         createChannelIfNeeded(context);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification)  // make sure this icon exists
+                .setSmallIcon(R.mipmap.ic_launcher)  // make sure this icon exists
                 .setContentTitle(title)
                 .setContentText(message)
                 .setAutoCancel(true)
