@@ -46,7 +46,7 @@ public class ReminderHelper {
         cal.set(Calendar.DAY_OF_MONTH,
                 Math.min(dayOfMonth, cal.getActualMaximum(Calendar.DAY_OF_MONTH)));
         cal.set(Calendar.HOUR_OF_DAY, 9);
-        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.MINUTE, 22);
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
 
