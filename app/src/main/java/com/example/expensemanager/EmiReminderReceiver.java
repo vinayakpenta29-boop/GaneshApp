@@ -20,6 +20,12 @@ public class EmiReminderReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        // Read extras from PendingIntent
+        String type = intent.getStringExtra("type");          // "BC" or "EMI"
+        String schemeId = intent.getStringExtra("schemeId");  // scheme id
+        int hour24 = intent.getIntExtra("hour24", 7);
+        int minute = intent.getIntExtra("minute", 0);
+
         String title = intent.getStringExtra("title");
         String message = intent.getStringExtra("message");
 
@@ -33,15 +39,20 @@ public class EmiReminderReceiver extends BroadcastReceiver {
         createChannelIfNeeded(context);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.mipmap.ic_launcher)  // make sure this icon exists
+                .setSmallIcon(R.mipmap.ic_launcher)  // ensure this icon exists
                 .setContentTitle(title)
                 .setContentText(message)
-                .setAutoCancel(true)
+                .setAutoCancel(true)                  // user tap dismisses it
                 .setPriority(NotificationCompat.PRIORITY_HIGH);
 
         NotificationManagerCompat manager = NotificationManagerCompat.from(context);
         int notificationId = (int) System.currentTimeMillis();
         manager.notify(notificationId, builder.build());
+
+        // Schedule next month's reminder for this scheme (if more installments left)
+        if (type != null && schemeId != null) {
+            ReminderHelper.scheduleSchemeReminder(context, type, schemeId, hour24, minute);
+        }
     }
 
     private void createChannelIfNeeded(Context context) {
