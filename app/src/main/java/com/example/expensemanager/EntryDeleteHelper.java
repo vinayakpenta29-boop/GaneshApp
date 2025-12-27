@@ -66,11 +66,16 @@ public class EntryDeleteHelper {
                             idsToDelete.add(t.id);
 
                             // If this entry is for BC / EMI, remember its scheme id
-                            // Here we assume note holds schemeId; change to match your real field.
                             if ("BC".equalsIgnoreCase(t.category) && t.note != null) {
-                                bcSchemesToRollback.add(t.note);
+                                String schemeId = extractSchemeIdFromNote(t.note);
+                                if (schemeId != null) {
+                                    bcSchemesToRollback.add(schemeId);
+                                }
                             } else if ("EMI".equalsIgnoreCase(t.category) && t.note != null) {
-                                emiSchemesToRollback.add(t.note);
+                                String schemeId = extractSchemeIdFromNote(t.note);
+                                if (schemeId != null) {
+                                    emiSchemesToRollback.add(schemeId);
+                                }
                             }
                         }
                     }
@@ -118,5 +123,17 @@ public class EntryDeleteHelper {
                     fm.setFragmentResult("refresh_summary", b);
                 })
                 .show();
+    }
+
+    /**
+     * Note format for BC/EMI entries is:
+     *   schemeId + "||" + userNote
+     * This helper returns the schemeId part, or null if not present.
+     */
+    private static String extractSchemeIdFromNote(String note) {
+        if (note == null) return null;
+        int idx = note.indexOf("||");
+        if (idx <= 0) return null;           // no delimiter or empty id
+        return note.substring(0, idx);
     }
 }
