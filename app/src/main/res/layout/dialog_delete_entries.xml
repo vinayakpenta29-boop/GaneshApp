@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/tv_delete_entries_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Select entries to delete"
+        android:textStyle="bold"
+        android:paddingBottom="8dp" />
+
+    <ListView
+        android:id="@+id/lv_entries"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:choiceMode="multipleChoice" />
+
+</LinearLayout>
