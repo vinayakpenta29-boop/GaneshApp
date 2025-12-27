@@ -246,7 +246,15 @@ public class ExpensesFragment extends Fragment {
                                 sourceType = "OTHER";
                             }
 
-                            db.insertTransaction("expense", amount, note, month, year, category, sourceType);
+                            // Option A: prefix schemeId into note for BC/EMI
+                            String finalNote = note;
+                            if ("BC".equals(category) && selectedBcId != null) {
+                                finalNote = selectedBcId + "||" + finalNote;
+                            } else if ("EMI".equals(category) && selectedEmiId != null) {
+                                finalNote = selectedEmiId + "||" + finalNote;
+                            }
+
+                            db.insertTransaction("expense", amount, finalNote, month, year, category, sourceType);
 
                             // Only update BC/EMI state here; reminders are controlled from Reminder menu
                             if ("BC".equals(category) && selectedBcId != null) {
