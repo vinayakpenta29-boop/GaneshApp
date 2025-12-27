@@ -31,7 +31,7 @@ public class BcStore {
         public int fixedAmount = 0;
         public List<Integer> monthlyAmounts = new ArrayList<>();
 
-        // NEW: which tab owns this scheme: "INCOME" or "EXPENSE"
+        // which tab owns this scheme: "INCOME" or "EXPENSE"
         public String ownerTab = "INCOME";
     }
 
@@ -55,7 +55,7 @@ public class BcStore {
         return all;
     }
 
-    // NEW: get schemes only for a given owner tab ("INCOME" or "EXPENSE")
+    // Get schemes only for a given owner tab ("INCOME" or "EXPENSE")
     public static List<BcScheme> getSchemesForOwner(String ownerTab) {
         List<BcScheme> result = new ArrayList<>();
         if (TextUtils.isEmpty(ownerTab)) return result;
@@ -113,6 +113,21 @@ public class BcStore {
         }
     }
 
+    // NEW: find a scheme anywhere in the map by its id
+    public static BcScheme findSchemeById(String bcId) {
+        if (TextUtils.isEmpty(bcId)) return null;
+        for (String key : bcMap.keySet()) {
+            ArrayList<BcScheme> list = bcMap.get(key);
+            if (list == null) continue;
+            for (BcScheme s : list) {
+                if (bcId.equals(s.id)) {
+                    return s;
+                }
+            }
+        }
+        return null;
+    }
+
     // Increase paidCount so next checkbox is ticked in View BC List
     public static void markBcInstallmentDone(String bcId, String unusedDate) {
         if (TextUtils.isEmpty(bcId)) return;
@@ -164,7 +179,7 @@ public class BcStore {
                     }
                     o.put("monthlyAmounts", amts);
 
-                    // NEW: persist owner tab
+                    // persist owner tab
                     o.put("ownerTab", s.ownerTab);
 
                     arr.put(o);
@@ -219,7 +234,7 @@ public class BcStore {
                         }
                     }
 
-                    // NEW: load owner tab (default INCOME for old data)
+                    // load owner tab (default INCOME for old data)
                     s.ownerTab = o.optString("ownerTab", "INCOME");
 
                     list.add(s);
