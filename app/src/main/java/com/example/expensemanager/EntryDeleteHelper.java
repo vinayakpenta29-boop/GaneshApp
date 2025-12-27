@@ -9,7 +9,9 @@ import android.widget.Toast;
 import androidx.fragment.app.Fragment;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Shows a list of income/expense entries with checkboxes and deletes selected ones.
@@ -21,14 +23,14 @@ public class EntryDeleteHelper {
         DatabaseHelper db = new DatabaseHelper(ctx);
 
         // Load all transactions (you can filter by month/year if you want)
-        List<Transaction> all = db.getAllTransactions(); // add this method if missing
+        List<Transaction> all = db.getAllTransactions();
 
         if (all.isEmpty()) {
             Toast.makeText(ctx, "No entries to delete", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Build display strings like "2025-12-27  |  Expense  |  Note"
+        // Build display strings like "2025-12-27  |  EXPENSE  |  Note"
         List<String> labels = new ArrayList<>();
         for (Transaction t : all) {
             String label = t.year + "-" + t.month + "  |  " + t.type.toUpperCase()
@@ -54,9 +56,22 @@ public class EntryDeleteHelper {
                     android.util.SparseBooleanArray checked = lv.getCheckedItemPositions();
                     List<Long> idsToDelete = new ArrayList<>();
 
+                    // Sets of scheme IDs whose last installment must be marked unpaid
+                    Set<String> bcSchemesToRollback = new HashSet<>();
+                    Set<String> emiSchemesToRollback = new HashSet<>();
+
                     for (int i = 0; i < all.size(); i++) {
                         if (checked.get(i)) {
-                            idsToDelete.add(all.get(i).id); // make sure Transaction has 'id'
+                            Transaction t = all.get(i);
+                            idsToDelete.add(t.id);
+
+                            // If this entry is for BC / EMI, remember its scheme id
+                            // Here we assume note holds schemeId; change to match your real field.
+                            if ("BC".equalsIgnoreCase(t.category) && t.note != null) {
+                                bcSchemesToRollback.add(t.note);
+                            } else if ("EMI".equalsIgnoreCase(t.category) && t.note != null) {
+                                emiSchemesToRollback.add(t.note);
+                            }
                         }
                     }
 
@@ -65,12 +80,36 @@ public class EntryDeleteHelper {
                         return;
                     }
 
+                    // Roll back BC paidCount for affected schemes
+                    for (String schemeId : bcSchemesToRollback) {
+                        BcStore.BcScheme scheme = BcStore.findSchemeById(schemeId);
+                        if (scheme != null && scheme.paidCount > 0) {
+                            scheme.paidCount--; // uncheck last paid installment
+                        }
+                    }
+                    if (!bcSchemesToRollback.isEmpty()) {
+                        BcStore.save(ctx);
+                    }
+
+                    // Roll back EMI paidCount for affected schemes
+                    for (String schemeId : emiSchemesToRollback) {
+                        EmiStore.EmiScheme scheme = EmiStore.findSchemeById(schemeId);
+                        if (scheme != null && scheme.paidCount > 0) {
+                            scheme.paidCount--;
+                        }
+                    }
+                    if (!emiSchemesToRollback.isEmpty()) {
+                        EmiStore.save(ctx);
+                    }
+
                     // Delete from DB
                     for (Long id : idsToDelete) {
                         db.deleteTransactionById(id);
                     }
 
-                    Toast.makeText(ctx, "Deleted " + idsToDelete.size() + " entries", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ctx,
+                            "Deleted " + idsToDelete.size() + " entries",
+                            Toast.LENGTH_SHORT).show();
 
                     // Ask Income/Expenses fragments to refresh if you use FragmentResult as before
                     androidx.fragment.app.FragmentManager fm = fragment.getParentFragmentManager();
