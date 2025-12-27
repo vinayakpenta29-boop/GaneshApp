@@ -38,7 +38,7 @@ public class EmiStore {
         public int fixedAmount = 0;
         public List<Integer> monthlyAmounts = new ArrayList<>();
 
-        // NEW: which tab owns this scheme: "INCOME" or "EXPENSE"
+        // which tab owns this scheme: "INCOME" or "EXPENSE"
         public String ownerTab = "EXPENSE";
     }
 
@@ -64,7 +64,7 @@ public class EmiStore {
         return all;
     }
 
-    // NEW: get schemes only for a given owner tab ("INCOME" or "EXPENSE")
+    // get schemes only for a given owner tab ("INCOME" or "EXPENSE")
     public static List<EmiScheme> getSchemesForOwner(String ownerTab) {
         List<EmiScheme> result = new ArrayList<>();
         if (TextUtils.isEmpty(ownerTab)) return result;
@@ -121,6 +121,21 @@ public class EmiStore {
         }
     }
 
+    // NEW: find a scheme anywhere in the map by its id
+    public static EmiScheme findSchemeById(String emiId) {
+        if (TextUtils.isEmpty(emiId)) return null;
+        for (String key : emiMap.keySet()) {
+            ArrayList<EmiScheme> list = emiMap.get(key);
+            if (list == null) continue;
+            for (EmiScheme s : list) {
+                if (emiId.equals(s.id)) {
+                    return s;
+                }
+            }
+        }
+        return null;
+    }
+
     // Increase paidCount so next EMI checkbox is ticked
     public static void markEmiInstallmentDone(String emiId, String unusedDate) {
         if (TextUtils.isEmpty(emiId)) return;
@@ -172,7 +187,7 @@ public class EmiStore {
                     }
                     o.put("monthlyAmounts", amts);
 
-                    // NEW: persist owner tab
+                    // persist owner tab
                     o.put("ownerTab", s.ownerTab);
 
                     arr.put(o);
@@ -227,7 +242,7 @@ public class EmiStore {
                         }
                     }
 
-                    // NEW: load owner tab (default EXPENSE for old data)
+                    // load owner tab (default EXPENSE for old data)
                     s.ownerTab = o.optString("ownerTab", "EXPENSE");
 
                     list.add(s);
