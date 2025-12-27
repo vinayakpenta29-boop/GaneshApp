@@ -18,7 +18,8 @@ public class SchemeDeleteHelper {
     public static void showDeleteDialog(Fragment fragment) {
         Context context = fragment.requireContext();
 
-        String[] types = {"BC", "EMI"};
+        // Added "Entry" as 3rd option
+        String[] types = {"BC", "EMI", "Entry"};
         final int[] checkedIndex = {0};
 
         new AlertDialog.Builder(context)
@@ -29,8 +30,11 @@ public class SchemeDeleteHelper {
                     String type = types[checkedIndex[0]];
                     if ("BC".equals(type)) {
                         showMultiDeleteDialogForBc(fragment);
-                    } else {
+                    } else if ("EMI".equals(type)) {
                         showMultiDeleteDialogForEmi(fragment);
+                    } else {
+                        // NEW: delete income/expense entries
+                        EntryDeleteHelper.showDeleteEntriesDialog(fragment);
                     }
                 })
                 .setNegativeButton("Cancel", null)
