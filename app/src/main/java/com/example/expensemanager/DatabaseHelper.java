@@ -36,7 +36,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         "month TEXT, " +
                         "year TEXT, " +
                         "category TEXT, " +
-                        "source_type TEXT, " +    // NEW: which radio (SALARY/COMMISSION/OTHER)
+                        "source_type TEXT, " +    // which radio (SALARY/COMMISSION/OTHER)
                         "date TEXT)"
         );
     }
@@ -96,6 +96,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Cursor cursor = db.rawQuery("SELECT * FROM transactions WHERE type=?", new String[]{type});
         if (cursor.moveToFirst()) {
             do {
+                long id = cursor.getLong(cursor.getColumnIndex("id"));
+                String txnType = cursor.getString(cursor.getColumnIndex("type"));
                 double amount = cursor.getDouble(cursor.getColumnIndex("amount"));
                 String note = cursor.getString(cursor.getColumnIndex("note"));
                 String month = cursor.getString(cursor.getColumnIndex("month"));
@@ -107,12 +109,49 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     sourceType = cursor.getString(idxSource);
                 }
                 String date = cursor.getString(cursor.getColumnIndex("date"));
-                // Make sure Transaction has a sourceType field/constructor param
-                list.add(new Transaction(type, amount, note, month, year, category, date, sourceType));
+                list.add(new Transaction(id, txnType, amount, note, month, year, category, date, sourceType));
             } while (cursor.moveToNext());
         }
         cursor.close();
         return list;
+    }
+
+    /**
+     * NEW: return all transactions (income + expense) ordered by date desc.
+     * Used by EntryDeleteHelper to show all entries with checkboxes.
+     */
+    public List<Transaction> getAllTransactions() {
+        List<Transaction> list = new ArrayList<>();
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM transactions ORDER BY date DESC", null);
+        if (cursor.moveToFirst()) {
+            do {
+                long id = cursor.getLong(cursor.getColumnIndex("id"));
+                String type = cursor.getString(cursor.getColumnIndex("type"));
+                double amount = cursor.getDouble(cursor.getColumnIndex("amount"));
+                String note = cursor.getString(cursor.getColumnIndex("note"));
+                String month = cursor.getString(cursor.getColumnIndex("month"));
+                String year = cursor.getString(cursor.getColumnIndex("year"));
+                String category = cursor.getString(cursor.getColumnIndex("category"));
+                String sourceType = null;
+                int idxSource = cursor.getColumnIndex("source_type");
+                if (idxSource != -1) {
+                    sourceType = cursor.getString(idxSource);
+                }
+                String date = cursor.getString(cursor.getColumnIndex("date"));
+                list.add(new Transaction(id, type, amount, note, month, year, category, date, sourceType));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return list;
+    }
+
+    /**
+     * NEW: delete a single transaction row by id.
+     */
+    public void deleteTransactionById(long id) {
+        SQLiteDatabase db = getWritableDatabase();
+        db.delete("transactions", "id=?", new String[]{String.valueOf(id)});
     }
 
     public double getTotalByType(String type) {
@@ -145,11 +184,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(
-            "SELECT month, " +
-            "SUM(CASE WHEN type='income' THEN amount ELSE 0 END) AS income, " +
-            "SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) AS expense " +
-            "FROM transactions WHERE year=? GROUP BY month ORDER BY CAST(month AS INTEGER)",
-            new String[]{year});
+                "SELECT month, " +
+                        "SUM(CASE WHEN type='income' THEN amount ELSE 0 END) AS income, " +
+                        "SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) AS expense " +
+                        "FROM transactions WHERE year=? GROUP BY month ORDER BY CAST(month AS INTEGER)",
+                new String[]{year});
 
         while (cursor.moveToNext()) {
             String monthStr = cursor.getString(cursor.getColumnIndex("month"));
@@ -170,10 +209,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void getGroupedMonthlyEntries(ArrayList<BarEntry> incomeEntries, ArrayList<BarEntry> expenseEntries, ArrayList<String> monthLabels, String year) {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(
-            "SELECT month, SUM(CASE WHEN type='income' THEN amount ELSE 0 END) AS income, " +
-            "SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) AS expense " +
-            "FROM transactions WHERE year=? GROUP BY month ORDER BY CAST(month AS INTEGER)",
-            new String[]{year});
+                "SELECT month, SUM(CASE WHEN type='income' THEN amount ELSE 0 END) AS income, " +
+                        "SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) AS expense " +
+                        "FROM transactions WHERE year=? GROUP BY month ORDER BY CAST(month AS INTEGER)",
+                new String[]{year});
         int i = 0;
         while (cursor.moveToNext()) {
             String month = cursor.getString(cursor.getColumnIndex("month"));
@@ -197,9 +236,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Map<String, List<Transaction>> map = new LinkedHashMap<>();
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(
-            "SELECT * FROM transactions WHERE type=? AND year=? ORDER BY CAST(month AS INTEGER), date DESC",
-            new String[]{type, year});
+                "SELECT * FROM transactions WHERE type=? AND year=? ORDER BY CAST(month AS INTEGER), date DESC",
+                new String[]{type, year});
         while (cursor.moveToNext()) {
+            long id = cursor.getLong(cursor.getColumnIndex("id"));
             double amount = cursor.getDouble(cursor.getColumnIndex("amount"));
             String note = cursor.getString(cursor.getColumnIndex("note"));
             String month = cursor.getString(cursor.getColumnIndex("month"));
@@ -211,7 +251,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 sourceType = cursor.getString(idxSource);
             }
             String date = cursor.getString(cursor.getColumnIndex("date"));
-            Transaction txn = new Transaction(type, amount, note, month, txnYear, category, date, sourceType);
+            Transaction txn = new Transaction(id, type, amount, note, month, txnYear, category, date, sourceType);
             if (!map.containsKey(month)) {
                 map.put(month, new ArrayList<>());
             }
