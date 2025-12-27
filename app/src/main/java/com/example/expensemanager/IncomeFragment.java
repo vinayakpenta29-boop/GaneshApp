@@ -229,7 +229,15 @@ public class IncomeFragment extends Fragment {
                                     sourceType = null;
                                 }
 
-                                db.insertTransaction("income", amount, note, month, year, category, sourceType);
+                                // Option A: prefix schemeId into note for BC/EMI
+                                String finalNote = note;
+                                if ("BC".equals(category) && selectedBcId != null) {
+                                    finalNote = selectedBcId + "||" + finalNote;
+                                } else if ("EMI".equals(category) && selectedEmiId != null) {
+                                    finalNote = selectedEmiId + "||" + finalNote;
+                                }
+
+                                db.insertTransaction("income", amount, finalNote, month, year, category, sourceType);
 
                                 if ("BC".equals(category) && selectedBcId != null) {
                                     BcStore.markBcInstallmentDone(selectedBcId, null);
