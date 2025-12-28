@@ -24,6 +24,7 @@ import android.widget.Toast;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,6 +45,7 @@ public class ExpensesFragment extends Fragment {
 
     // Radio buttons for Salary / Commission / Other income source
     private RadioButton rbExpSalary, rbExpCommission, rbExpOther;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -60,6 +62,7 @@ public class ExpensesFragment extends Fragment {
         Button btnAdd = view.findViewById(R.id.btn_add_expense);
         RecyclerView rv = view.findViewById(R.id.rv_expenses);
         ImageView ivMenu = view.findViewById(R.id.iv_expenses_menu);
+        swipeRefreshLayout = view.findViewById(R.id.swipe_refresh);
 
         // Find radio buttons
         rbExpSalary = view.findViewById(R.id.rb_exp_salary);
@@ -71,6 +74,14 @@ public class ExpensesFragment extends Fragment {
 
         rv.setLayoutManager(new LinearLayoutManager(getContext()));
         rv.setAdapter(adapter);
+
+        // Pull-to-refresh: refresh current list
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            selectedYear = etYear.getText().toString().trim();
+            adapter.setSelectedYear(selectedYear);
+            updateList();
+            swipeRefreshLayout.setRefreshing(false);
+        });
 
         // Load BC and EMI data once
         BcStore.load(requireContext());
