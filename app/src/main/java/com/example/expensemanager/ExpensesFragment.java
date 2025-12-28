@@ -267,14 +267,14 @@ public class ExpensesFragment extends Fragment {
 
                             db.insertTransaction("expense", amount, finalNote, month, year, category, sourceType);
 
-                            // Only update BC/EMI state here; reminders are controlled from Reminder menu
+                            // NEW: pass month & year so store can tick matching date
                             if ("BC".equals(category) && selectedBcId != null) {
-                                BcStore.markBcInstallmentDone(selectedBcId, null);
+                                BcStore.markBcInstallmentDone(selectedBcId, month, year);
                                 BcStore.save(requireContext());
                             }
 
                             if ("EMI".equals(category) && selectedEmiId != null) {
-                                EmiStore.markEmiInstallmentDone(selectedEmiId, null);
+                                EmiStore.markEmiInstallmentDone(selectedEmiId, month, year);
                                 EmiStore.save(requireContext());
                             }
                             return null;
