@@ -40,6 +40,9 @@ public class EmiStore {
 
         // which tab owns this scheme: "INCOME" or "EXPENSE"
         public String ownerTab = "EXPENSE";
+
+        // Per‑installment flags to track which dates are paid
+        public List<Boolean> paidFlags = new ArrayList<>();
     }
 
     private static final String PREFS_NAME = "ExpenseManagerPrefs";
@@ -89,6 +92,13 @@ public class EmiStore {
         if (TextUtils.isEmpty(scheme.id)) {
             scheme.id = key + "|" + scheme.name;
         }
+        // ensure paidFlags matches schedule size
+        if (scheme.paidFlags == null) {
+            scheme.paidFlags = new ArrayList<>();
+        }
+        while (scheme.paidFlags.size() < scheme.scheduleDates.size()) {
+            scheme.paidFlags.add(false);
+        }
         // ownerTab must be set by caller (IncomeFragment / ExpensesFragment)
         list.add(scheme);
     }
@@ -136,21 +146,74 @@ public class EmiStore {
         return null;
     }
 
-    // Increase paidCount so next EMI checkbox is ticked
-    public static void markEmiInstallmentDone(String emiId, String unusedDate) {
-        if (TextUtils.isEmpty(emiId)) return;
-        for (String key : emiMap.keySet()) {
-            ArrayList<EmiScheme> list = emiMap.get(key);
-            if (list == null) continue;
-            for (EmiScheme s : list) {
-                if (emiId.equals(s.id)) {
-                    if (s.paidCount < s.months) {
-                        s.paidCount++;
-                    }
-                    return;
+    /**
+     * Mark one EMI installment done based on month/year from the entry.
+     * month and year are strings from the Income/Expenses EditTexts.
+     */
+    public static void markEmiInstallmentDone(String emiId, String month, String year) {
+        if (TextUtils.isEmpty(emiId) || TextUtils.isEmpty(month) || TextUtils.isEmpty(year)) return;
+        EmiScheme s = findSchemeById(emiId);
+        if (s == null) return;
+
+        if (s.paidFlags == null) {
+            s.paidFlags = new ArrayList<>();
+        }
+        while (s.paidFlags.size() < s.scheduleDates.size()) {
+            s.paidFlags.add(false);
+        }
+
+        for (int i = 0; i < s.scheduleDates.size(); i++) {
+            String d = s.scheduleDates.get(i);
+            if (matchesMonthYear(d, month, year) && !s.paidFlags.get(i)) {
+                s.paidFlags.set(i, true);
+                if (s.paidCount < s.months) {
+                    s.paidCount++;
                 }
+                break;
             }
         }
+    }
+
+    /**
+     * Used when deleting an entry: unmark installment whose date has same month/year.
+     */
+    public static void unmarkEmiInstallment(String emiId, String month, String year) {
+        if (TextUtils.isEmpty(emiId) || TextUtils.isEmpty(month) || TextUtils.isEmpty(year)) return;
+        EmiScheme s = findSchemeById(emiId);
+        if (s == null) return;
+
+        if (s.paidFlags == null) {
+            s.paidFlags = new ArrayList<>();
+        }
+        while (s.paidFlags.size() < s.scheduleDates.size()) {
+            s.paidFlags.add(false);
+        }
+
+        for (int i = 0; i < s.scheduleDates.size(); i++) {
+            String d = s.scheduleDates.get(i);
+            if (matchesMonthYear(d, month, year) && s.paidFlags.get(i)) {
+                s.paidFlags.set(i, false);
+                if (s.paidCount > 0) {
+                    s.paidCount--;
+                }
+                break;
+            }
+        }
+    }
+
+    /**
+     * Helper: check if stored date string has same month/year as user input.
+     * Assumes scheduleDates stored as "dd-MM-yyyy" or "dd/MM/yyyy".
+     */
+    private static boolean matchesMonthYear(String dateStr, String month, String year) {
+        if (TextUtils.isEmpty(dateStr) || TextUtils.isEmpty(month) || TextUtils.isEmpty(year)) {
+            return false;
+        }
+        String[] parts = dateStr.split("[-/]");
+        if (parts.length < 3) return false;
+        String m = parts[1]; // MM
+        String y = parts[2]; // yyyy
+        return m.equals(month) && y.equals(year);
     }
 
     public static void save(Context context) {
@@ -189,6 +252,15 @@ public class EmiStore {
 
                     // persist owner tab
                     o.put("ownerTab", s.ownerTab);
+
+                    // persist paidFlags
+                    JSONArray flags = new JSONArray();
+                    if (s.paidFlags != null) {
+                        for (boolean f : s.paidFlags) {
+                            flags.put(f);
+                        }
+                    }
+                    o.put("paidFlags", flags);
 
                     arr.put(o);
                 }
@@ -244,6 +316,19 @@ public class EmiStore {
 
                     // load owner tab (default EXPENSE for old data)
                     s.ownerTab = o.optString("ownerTab", "EXPENSE");
+
+                    // load paidFlags if present; otherwise infer from paidCount
+                    s.paidFlags = new ArrayList<>();
+                    JSONArray flags = o.optJSONArray("paidFlags");
+                    if (flags != null) {
+                        for (int j = 0; j < flags.length(); j++) {
+                            s.paidFlags.add(flags.getBoolean(j));
+                        }
+                    } else {
+                        for (int j = 0; j < s.scheduleDates.size(); j++) {
+                            s.paidFlags.add(j < s.paidCount);
+                        }
+                    }
 
                     list.add(s);
                 }
