@@ -33,6 +33,9 @@ public class BcStore {
 
         // which tab owns this scheme: "INCOME" or "EXPENSE"
         public String ownerTab = "INCOME";
+
+        // optional: flags per installment if you already use them elsewhere
+        public List<Boolean> paidFlags = new ArrayList<>();
     }
 
     private static final String PREFS_NAME = "ExpenseManagerPrefs";
@@ -79,6 +82,13 @@ public class BcStore {
         }
         if (TextUtils.isEmpty(scheme.id)) {
             scheme.id = key + "|" + scheme.name;
+        }
+        // ensure paidFlags list matches schedule size
+        if (scheme.paidFlags == null) {
+            scheme.paidFlags = new ArrayList<>();
+        }
+        while (scheme.paidFlags.size() < scheme.scheduleDates.size()) {
+            scheme.paidFlags.add(false);
         }
         // ownerTab must be set by caller (IncomeFragment / ExpensesFragment)
         list.add(scheme);
@@ -128,21 +138,75 @@ public class BcStore {
         return null;
     }
 
-    // Increase paidCount so next checkbox is ticked in View BC List
-    public static void markBcInstallmentDone(String bcId, String unusedDate) {
-        if (TextUtils.isEmpty(bcId)) return;
-        for (String key : bcMap.keySet()) {
-            ArrayList<BcScheme> list = bcMap.get(key);
-            if (list == null) continue;
-            for (BcScheme s : list) {
-                if (bcId.equals(s.id)) {
-                    if (s.paidCount < s.months) {
-                        s.paidCount++;
-                    }
-                    return;
+    /**
+     * Mark one installment done based on month/year.
+     * month, year come from Income/Expenses EditTexts (both as strings).
+     */
+    public static void markBcInstallmentDone(String bcId, String month, String year) {
+        if (TextUtils.isEmpty(bcId) || TextUtils.isEmpty(month) || TextUtils.isEmpty(year)) return;
+        BcScheme s = findSchemeById(bcId);
+        if (s == null) return;
+
+        // ensure paidFlags list is initialized and aligned with scheduleDates
+        if (s.paidFlags == null) {
+            s.paidFlags = new ArrayList<>();
+        }
+        while (s.paidFlags.size() < s.scheduleDates.size()) {
+            s.paidFlags.add(false);
+        }
+
+        for (int i = 0; i < s.scheduleDates.size(); i++) {
+            String d = s.scheduleDates.get(i);
+            if (matchesMonthYear(d, month, year) && !s.paidFlags.get(i)) {
+                s.paidFlags.set(i, true);
+                if (s.paidCount < s.months) {
+                    s.paidCount++;
                 }
+                break;
             }
         }
+    }
+
+    /**
+     * Used when deleting an entry: unmark the installment whose date has same month/year.
+     */
+    public static void unmarkBcInstallment(String bcId, String month, String year) {
+        if (TextUtils.isEmpty(bcId) || TextUtils.isEmpty(month) || TextUtils.isEmpty(year)) return;
+        BcScheme s = findSchemeById(bcId);
+        if (s == null) return;
+
+        if (s.paidFlags == null) {
+            s.paidFlags = new ArrayList<>();
+        }
+        while (s.paidFlags.size() < s.scheduleDates.size()) {
+            s.paidFlags.add(false);
+        }
+
+        for (int i = 0; i < s.scheduleDates.size(); i++) {
+            String d = s.scheduleDates.get(i);
+            if (matchesMonthYear(d, month, year) && s.paidFlags.get(i)) {
+                s.paidFlags.set(i, false);
+                if (s.paidCount > 0) {
+                    s.paidCount--;
+                }
+                break;
+            }
+        }
+    }
+
+    /**
+     * Helper: check if stored date string has same month/year as user input.
+     * Assumes scheduleDates stored as "dd-MM-yyyy" or "dd/MM/yyyy".
+     */
+    private static boolean matchesMonthYear(String dateStr, String month, String year) {
+        if (TextUtils.isEmpty(dateStr) || TextUtils.isEmpty(month) || TextUtils.isEmpty(year)) {
+            return false;
+        }
+        String[] parts = dateStr.split("[-/]");
+        if (parts.length < 3) return false;
+        String m = parts[1]; // MM
+        String y = parts[2]; // yyyy
+        return m.equals(month) && y.equals(year);
     }
 
     public static void save(Context context) {
@@ -181,6 +245,15 @@ public class BcStore {
 
                     // persist owner tab
                     o.put("ownerTab", s.ownerTab);
+
+                    // persist paidFlags to keep checkbox state (optional but recommended)
+                    JSONArray flags = new JSONArray();
+                    if (s.paidFlags != null) {
+                        for (boolean f : s.paidFlags) {
+                            flags.put(f);
+                        }
+                    }
+                    o.put("paidFlags", flags);
 
                     arr.put(o);
                 }
@@ -236,6 +309,20 @@ public class BcStore {
 
                     // load owner tab (default INCOME for old data)
                     s.ownerTab = o.optString("ownerTab", "INCOME");
+
+                    // load paidFlags if present; otherwise initialize from paidCount
+                    s.paidFlags = new ArrayList<>();
+                    JSONArray flags = o.optJSONArray("paidFlags");
+                    if (flags != null) {
+                        for (int j = 0; j < flags.length(); j++) {
+                            s.paidFlags.add(flags.getBoolean(j));
+                        }
+                    } else {
+                        // backward compatibility: mark first paidCount installments as true
+                        for (int j = 0; j < s.scheduleDates.size(); j++) {
+                            s.paidFlags.add(j < s.paidCount);
+                        }
+                    }
 
                     list.add(s);
                 }
