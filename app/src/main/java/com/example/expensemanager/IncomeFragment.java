@@ -250,13 +250,14 @@ public class IncomeFragment extends Fragment {
 
                                 db.insertTransaction("income", amount, finalNote, month, year, category, sourceType);
 
+                                // NEW: pass month & year so store can tick matching date
                                 if ("BC".equals(category) && selectedBcId != null) {
-                                    BcStore.markBcInstallmentDone(selectedBcId, null);
+                                    BcStore.markBcInstallmentDone(selectedBcId, month, year);
                                     BcStore.save(requireContext());
                                 }
 
                                 if ("EMI".equals(category) && selectedEmiId != null) {
-                                    EmiStore.markEmiInstallmentDone(selectedEmiId, null);
+                                    EmiStore.markEmiInstallmentDone(selectedEmiId, month, year);
                                     EmiStore.save(requireContext());
                                 }
                                 return null;
