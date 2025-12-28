@@ -297,7 +297,7 @@ public class BcStore {
                     s.id = o.optString("id", key + "|" + s.name);
 
                     s.scheduleDates = new ArrayList<>();
-                    JSONArray dates = o.opt.JSONArray("schedule");
+                    JSONArray dates = o.optJSONArray("schedule");
                     if (dates != null) {
                         for (int j = 0; j < dates.length(); j++) {
                             s.scheduleDates.add(dates.getString(j));
