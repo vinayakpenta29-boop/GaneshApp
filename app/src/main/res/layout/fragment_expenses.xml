@@ -1,208 +1,219 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
+    android:id="@+id/swipe_refresh"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#d3d3d3"
-    android:padding="16dp">
+    android:layout_height="match_parent">
 
-    <!-- Top row: title + three dots menu for BC -->
-    <LinearLayout
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginBottom="8dp">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Expenses"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="#22223A" />
-
-        <ImageView
-            android:id="@+id/iv_expenses_menu"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_more_vert_24"
-            android:contentDescription="Expenses menu"
-            android:padding="4dp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginBottom="12dp">
-
-        <androidx.cardview.widget.CardView
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            app:cardCornerRadius="18dp"
-            app:cardElevation="2dp"
-            android:layout_marginEnd="4dp">
-            <EditText
-                android:id="@+id/et_expense_month"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Enter Month (1-12)"
-                android:inputType="number"
-                android:background="@android:color/transparent"
-                android:textColor="@android:color/black"
-                android:textColorHint="#88000000"
-                android:padding="14dp"/>
-        </androidx.cardview.widget.CardView>
-
-        <androidx.cardview.widget.CardView
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            app:cardCornerRadius="18dp"
-            app:cardElevation="2dp"
-            android:layout_marginStart="4dp">
-            <EditText
-                android:id="@+id/et_expense_year"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Enter Year"
-                android:inputType="number"
-                android:background="@android:color/transparent"
-                android:textColor="@android:color/black"
-                android:textColorHint="#88000000"
-                android:padding="14dp"/>
-        </androidx.cardview.widget.CardView>
-    </LinearLayout>
-
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardCornerRadius="18dp"
-        app:cardElevation="2dp"
-        android:layout_marginBottom="12dp">
-        <EditText
-            android:id="@+id/et_expense_note"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Note"
-            android:background="@android:color/transparent"
-            android:textColor="@android:color/black"
-            android:textColorHint="#88000000"
-            android:padding="14dp"/>
-    </androidx.cardview.widget.CardView>
-
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardCornerRadius="18dp"
-        app:cardElevation="2dp"
-        android:layout_marginBottom="12dp">
-        <EditText
-            android:id="@+id/et_expense_amount"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Amount"
-            android:inputType="numberDecimal"
-            android:background="@android:color/transparent"
-            android:textColor="@android:color/black"
-            android:textColorHint="#88000000"
-            android:padding="14dp"/>
-    </androidx.cardview.widget.CardView>
-
-    <!-- NEW: curved box with Salary / Commission / Other radio buttons -->
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardCornerRadius="22dp"
-        app:cardElevation="2dp"
-        android:layout_marginBottom="12dp">
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
         <LinearLayout
+            android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:padding="12dp">
+            android:background="#d3d3d3"
+            android:padding="16dp">
 
-            <RadioGroup
-                android:id="@+id/rg_expense_source"
+            <!-- Top row: title + three dots menu for BC -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
 
-                <RadioButton
-                    android:id="@+id/rb_exp_salary"
-                    android:layout_width="wrap_content"
+                <TextView
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Salary"
-                    android:buttonTint="@color/blue" />
+                    android:layout_weight="1"
+                    android:text="Expenses"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#22223A" />
 
-                <RadioButton
-                    android:id="@+id/rb_exp_commission"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Commission"
-                    android:layout_marginStart="24dp"
-                    android:buttonTint="@color/purple" />
+                <ImageView
+                    android:id="@+id/iv_expenses_menu"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_more_vert_24"
+                    android:contentDescription="Expenses menu"
+                    android:padding="4dp" />
+            </LinearLayout>
 
-                <RadioButton
-                    android:id="@+id/rb_exp_other"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Other"
-                    android:layout_marginStart="24dp"
-                    android:buttonTint="@color/green" />
-            </RadioGroup>
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardCornerRadius="18dp"
-        app:cardElevation="2dp"
-        android:layout_marginBottom="12dp">
-        <Spinner
-            android:id="@+id/spinner_expense_category"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="14dp"/>
-    </androidx.cardview.widget.CardView>
-
-    <Button
-        android:id="@+id/btn_add_expense"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="ADD EXPENSE"
-        android:textStyle="bold"
-        android:textAllCaps="true"
-        android:textColor="@android:color/white"
-        android:background="@drawable/curved_purple_button"
-        android:layout_marginBottom="18dp"/>
-
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        app:cardCornerRadius="22dp"
-        app:cardElevation="3dp">
-
-        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-            android:id="@+id/swipe_refresh"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_expenses"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="8dp"/>
-        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="12dp">
 
-    </androidx.cardview.widget.CardView>
-</LinearLayout>
+                <androidx.cardview.widget.CardView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="18dp"
+                    app:cardElevation="2dp"
+                    android:layout_marginEnd="4dp">
+
+                    <EditText
+                        android:id="@+id/et_expense_month"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Enter Month (1-12)"
+                        android:inputType="number"
+                        android:background="@android:color/transparent"
+                        android:textColor="@android:color/black"
+                        android:textColorHint="#88000000"
+                        android:padding="14dp"/>
+                </androidx.cardview.widget.CardView>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="18dp"
+                    app:cardElevation="2dp"
+                    android:layout_marginStart="4dp">
+
+                    <EditText
+                        android:id="@+id/et_expense_year"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Enter Year"
+                        android:inputType="number"
+                        android:background="@android:color/transparent"
+                        android:textColor="@android:color/black"
+                        android:textColorHint="#88000000"
+                        android:padding="14dp"/>
+                </androidx.cardview.widget.CardView>
+            </LinearLayout>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="2dp"
+                android:layout_marginBottom="12dp">
+
+                <EditText
+                    android:id="@+id/et_expense_note"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Note"
+                    android:background="@android:color/transparent"
+                    android:textColor="@android:color/black"
+                    android:textColorHint="#88000000"
+                    android:padding="14dp"/>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="2dp"
+                android:layout_marginBottom="12dp">
+
+                <EditText
+                    android:id="@+id/et_expense_amount"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Amount"
+                    android:inputType="numberDecimal"
+                    android:background="@android:color/transparent"
+                    android:textColor="@android:color/black"
+                    android:textColorHint="#88000000"
+                    android:padding="14dp"/>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Salary / Commission / Other radio buttons -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="22dp"
+                app:cardElevation="2dp"
+                android:layout_marginBottom="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="12dp">
+
+                    <RadioGroup
+                        android:id="@+id/rg_expense_source"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <RadioButton
+                            android:id="@+id/rb_exp_salary"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Salary"
+                            android:buttonTint="@color/blue" />
+
+                        <RadioButton
+                            android:id="@+id/rb_exp_commission"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Commission"
+                            android:layout_marginStart="24dp"
+                            android:buttonTint="@color/purple" />
+
+                        <RadioButton
+                            android:id="@+id/rb_exp_other"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Other"
+                            android:layout_marginStart="24dp"
+                            android:buttonTint="@color/green" />
+                    </RadioGroup>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="2dp"
+                android:layout_marginBottom="12dp">
+
+                <Spinner
+                    android:id="@+id/spinner_expense_category"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="14dp"/>
+            </androidx.cardview.widget.CardView>
+
+            <Button
+                android:id="@+id/btn_add_expense"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ADD EXPENSE"
+                android:textStyle="bold"
+                android:textAllCaps="true"
+                android:textColor="@android:color/white"
+                android:background="@drawable/curved_purple_button"
+                android:layout_marginBottom="18dp"/>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="22dp"
+                app:cardElevation="3dp">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_expenses"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    android:padding="8dp"/>
+            </androidx.cardview.widget.CardView>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
