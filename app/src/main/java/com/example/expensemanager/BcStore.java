@@ -197,6 +197,7 @@ public class BcStore {
     /**
      * Helper: check if stored date string has same month/year as user input.
      * Assumes scheduleDates stored as "dd-MM-yyyy" or "dd/MM/yyyy".
+     * Works for both "2" and "02" entered in the Month box.
      */
     private static boolean matchesMonthYear(String dateStr, String month, String year) {
         if (TextUtils.isEmpty(dateStr) || TextUtils.isEmpty(month) || TextUtils.isEmpty(year)) {
@@ -204,9 +205,16 @@ public class BcStore {
         }
         String[] parts = dateStr.split("[-/]");
         if (parts.length < 3) return false;
-        String m = parts[1]; // MM
-        String y = parts[2]; // yyyy
-        return m.equals(month) && y.equals(year);
+
+        try {
+            int mScheme = Integer.parseInt(parts[1]); // "12" -> 12, "02" -> 2
+            int yScheme = Integer.parseInt(parts[2]);
+            int mInput = Integer.parseInt(month);
+            int yInput = Integer.parseInt(year);
+            return mScheme == mInput && yScheme == yInput;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     public static void save(Context context) {
@@ -246,7 +254,7 @@ public class BcStore {
                     // persist owner tab
                     o.put("ownerTab", s.ownerTab);
 
-                    // persist paidFlags to keep checkbox state (optional but recommended)
+                    // persist paidFlags to keep checkbox state
                     JSONArray flags = new JSONArray();
                     if (s.paidFlags != null) {
                         for (boolean f : s.paidFlags) {
@@ -289,7 +297,7 @@ public class BcStore {
                     s.id = o.optString("id", key + "|" + s.name);
 
                     s.scheduleDates = new ArrayList<>();
-                    JSONArray dates = o.optJSONArray("schedule");
+                    JSONArray dates = o.opt.JSONArray("schedule");
                     if (dates != null) {
                         for (int j = 0; j < dates.length(); j++) {
                             s.scheduleDates.add(dates.getString(j));
