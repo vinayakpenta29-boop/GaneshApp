@@ -12,7 +12,7 @@
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:background="#d3d3d3"
             android:padding="16dp">
 
@@ -200,16 +200,18 @@
                 android:background="@drawable/curved_purple_button"
                 android:layout_marginBottom="18dp"/>
 
+            <!-- List fills remaining space -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
                 app:cardCornerRadius="22dp"
                 app:cardElevation="3dp">
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rv_expenses"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:nestedScrollingEnabled="false"
                     android:padding="8dp"/>
             </androidx.cardview.widget.CardView>
