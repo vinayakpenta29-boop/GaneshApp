@@ -4,7 +4,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
 import androidx.recyclerview.widget.RecyclerView;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,10 +40,12 @@ public class GroupedTransactionAdapter extends RecyclerView.Adapter<RecyclerView
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         if (viewType == TYPE_HEADER) {
-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_month_header, parent, false);
+            View v = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_month_header, parent, false);
             return new HeaderViewHolder(v);
         } else {
-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_transaction, parent, false);
+            View v = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_transaction, parent, false);
             return new TransactionViewHolder(v);
         }
     }
@@ -53,9 +57,14 @@ public class GroupedTransactionAdapter extends RecyclerView.Adapter<RecyclerView
             ((HeaderViewHolder) holder).tvMonthHeader.setText(month + "-" + selectedYear);
         } else if (holder instanceof TransactionViewHolder) {
             Transaction item = (Transaction) items.get(position);
-            ((TransactionViewHolder) holder).tvAmount.setText(String.valueOf(item.amount));
-            ((TransactionViewHolder) holder).tvNote.setText(item.note);
-            ((TransactionViewHolder) holder).tvDate.setText(item.date);
+            TransactionViewHolder vh = (TransactionViewHolder) holder;
+
+            vh.tvAmount.setText(String.valueOf(item.amount));
+            vh.tvNote.setText(item.note);
+            vh.tvDate.setText(item.date);
+
+            // Enable marquee (news-ticker style) for note
+            vh.tvNote.setSelected(true);
         }
     }
 
