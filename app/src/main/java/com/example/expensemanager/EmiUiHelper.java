@@ -426,7 +426,10 @@ public class EmiUiHelper {
                 amount = scheme.monthlyAmounts.get(i);
             }
 
-            boolean done = i < scheme.paidCount;
+            boolean done = false;
+            if (scheme.paidFlags != null && i < scheme.paidFlags.size()) {
+                done = scheme.paidFlags.get(i);
+            }
 
             TableRow row = new TableRow(ctx);
             row.setPadding(0, 0, 0, 0);
