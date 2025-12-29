@@ -431,7 +431,7 @@ public class BcUiHelper {
                 amount = scheme.monthlyAmounts.get(i);
             }
 
-            boolean done = i < scheme.paidCount;
+            boolean done = scheme.paidFlags != null && i < scheme.paidFlags.size() && scheme.paidFlags.get(i);
 
             TableRow row = new TableRow(ctx);
             row.setPadding(0, 0, 0, 0);
