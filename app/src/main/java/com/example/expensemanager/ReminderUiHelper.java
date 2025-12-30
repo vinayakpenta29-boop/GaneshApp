@@ -96,7 +96,7 @@ public class ReminderUiHelper {
                                      String[] selectedSchemeId,
                                      String[] selectedSchemeName) {
         Context ctx = fragment.requireContext();
-        List<BcScheme> schemes = BcStore.getSchemesForOwner("EXPENSE");
+        List<BcScheme> schemes = BcStore.getAllSchemes(); // Show ALL schemes (not just EXPENSE)
         if (schemes.isEmpty()) {
             Toast.makeText(ctx, "No BC schemes found", Toast.LENGTH_SHORT).show();
             return;
@@ -105,16 +105,24 @@ public class ReminderUiHelper {
         List<String> labels = new ArrayList<>();
         List<String> ids = new ArrayList<>();
         for (BcScheme s : schemes) {
-            labels.add(s.name);
-            ids.add(s.id);
+            // ✅ NEW: Only show schemes with reminderEnabled = true
+            if (s.reminderEnabled) {
+                labels.add(s.name + " (Reminder ON)");
+                ids.add(s.id);
+            }
+        }
+
+        if (labels.isEmpty()) {
+            Toast.makeText(ctx, "No BC schemes have Reminder ON. Enable in BC List first.", Toast.LENGTH_LONG).show();
+            return;
         }
 
         String[] items = labels.toArray(new String[0]);
         new android.app.AlertDialog.Builder(ctx)
-                .setTitle("Select BC Scheme")
+                .setTitle("Select BC Scheme (Reminder ON)")
                 .setItems(items, (dialog, which) -> {
                     selectedSchemeId[0] = ids.get(which);
-                    selectedSchemeName[0] = labels.get(which);
+                    selectedSchemeName[0] = labels.get(which).replace(" (Reminder ON)", "");
                     tvScheme.setText("Selected: " + selectedSchemeName[0]);
                     tvScheme.setVisibility(View.VISIBLE);
                 })
@@ -127,7 +135,7 @@ public class ReminderUiHelper {
                                       String[] selectedSchemeId,
                                       String[] selectedSchemeName) {
         Context ctx = fragment.requireContext();
-        List<EmiScheme> schemes = EmiStore.getSchemesForOwner("EXPENSE");
+        List<EmiScheme> schemes = EmiStore.getAllSchemes(); // Show ALL schemes (not just EXPENSE)
         if (schemes.isEmpty()) {
             Toast.makeText(ctx, "No EMI schemes found", Toast.LENGTH_SHORT).show();
             return;
@@ -136,16 +144,24 @@ public class ReminderUiHelper {
         List<String> labels = new ArrayList<>();
         List<String> ids = new ArrayList<>();
         for (EmiScheme s : schemes) {
-            labels.add(s.name);
-            ids.add(s.id);
+            // ✅ NEW: Only show schemes with reminderEnabled = true
+            if (s.reminderEnabled) {
+                labels.add(s.name + " (Reminder ON)");
+                ids.add(s.id);
+            }
+        }
+
+        if (labels.isEmpty()) {
+            Toast.makeText(ctx, "No EMI schemes have Reminder ON. Enable in EMI List first.", Toast.LENGTH_LONG).show();
+            return;
         }
 
         String[] items = labels.toArray(new String[0]);
         new android.app.AlertDialog.Builder(ctx)
-                .setTitle("Select EMI Scheme")
+                .setTitle("Select EMI Scheme (Reminder ON)")
                 .setItems(items, (dialog, which) -> {
                     selectedSchemeId[0] = ids.get(which);
-                    selectedSchemeName[0] = labels.get(which);
+                    selectedSchemeName[0] = labels.get(which).replace(" (Reminder ON)", "");
                     tvScheme.setText("Selected: " + selectedSchemeName[0]);
                     tvScheme.setVisibility(View.VISIBLE);
                 })
@@ -165,19 +181,36 @@ public class ReminderUiHelper {
         TimePickerDialog dialog = new TimePickerDialog(
                 ctx,
                 (view, hourOfDay, minute) -> {
-                    // hourOfDay is 0–23 even in 12h mode; use directly
-                    ReminderHelper.scheduleSchemeReminder(
-                            ctx,
-                            type,
-                            schemeId,
-                            hourOfDay,
-                            minute
-                    );
-                    Toast.makeText(
-                            ctx,
-                            "Reminder set for " + schemeName,
-                            Toast.LENGTH_SHORT
-                    ).show();
+                    // ✅ NEW: Final check - verify scheme still has reminderEnabled = true
+                    boolean canSchedule = false;
+                    if ("BC".equals(type)) {
+                        BcScheme scheme = BcStore.findSchemeById(schemeId);
+                        if (scheme != null && scheme.reminderEnabled) {
+                            canSchedule = true;
+                        }
+                    } else if ("EMI".equals(type)) {
+                        EmiScheme scheme = EmiStore.findSchemeById(schemeId);
+                        if (scheme != null && scheme.reminderEnabled) {
+                            canSchedule = true;
+                        }
+                    }
+
+                    if (canSchedule) {
+                        ReminderHelper.scheduleSchemeReminder(
+                                ctx,
+                                type,
+                                schemeId,
+                                hourOfDay,
+                                minute
+                        );
+                        Toast.makeText(
+                                ctx,
+                                "Reminder set for " + schemeName + " at " + hourOfDay + ":" + String.format("%02d", minute),
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    } else {
+                        Toast.makeText(ctx, schemeName + " reminder was turned OFF", Toast.LENGTH_SHORT).show();
+                    }
                 },
                 initHour,
                 initMinute,
