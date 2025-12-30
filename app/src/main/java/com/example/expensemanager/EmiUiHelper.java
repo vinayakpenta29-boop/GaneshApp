@@ -359,12 +359,33 @@ public class EmiUiHelper {
             listLayout.addView(tv);
         } else {
             for (EmiScheme scheme : schemes) {
-                Button btn = new Button(ctx);
-                btn.setText(scheme.name);
-                btn.setOnClickListener(v ->
-                        showEmiDetailsDialog(fragment, scheme)
-                );
-                listLayout.addView(btn);
+                LinearLayout schemeRow = new LinearLayout(ctx);
+                schemeRow.setOrientation(LinearLayout.HORIZONTAL);
+                schemeRow.setGravity(Gravity.CENTER_VERTICAL);
+        
+                // Scheme name button (takes most space)
+                Button btnDetails = new Button(ctx);
+                btnDetails.setText(scheme.name);
+                btnDetails.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+                btnDetails.setOnClickListener(v -> showBcDetailsDialog(fragment, scheme));
+                schemeRow.addView(btnDetails);
+        
+                // Reminder toggle (top-right)
+                ToggleButton toggleReminder = new ToggleButton(ctx);
+                toggleReminder.setTextOn("ON");
+                toggleReminder.setTextOff("OFF");
+                toggleReminder.setChecked(scheme.reminderEnabled);
+                toggleReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                    scheme.reminderEnabled = isChecked;
+                    EmiStore.save(ctx);
+                    Toast.makeText(ctx, scheme.name + " reminder " + (isChecked ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
+                });
+                LinearLayout.LayoutParams toggleParams = new LinearLayout.LayoutParams(dpToPx(fragment, 80), LinearLayout.LayoutParams.WRAP_CONTENT);
+                toggleParams.setMargins(0, dpToPx(fragment, 8), 0, 0);
+                toggleReminder.setLayoutParams(toggleParams);
+                schemeRow.addView(toggleReminder);
+        
+                listLayout.addView(schemeRow);
             }
         }
 
