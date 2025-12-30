@@ -368,7 +368,7 @@ public class EmiUiHelper {
                 Button btnDetails = new Button(ctx);
                 btnDetails.setText(scheme.name);
                 btnDetails.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-                btnDetails.setOnClickListener(v -> showBcDetailsDialog(fragment, scheme));
+                btnDetails.setOnClickListener(v -> showEmiDetailsDialog(fragment, scheme));
                 schemeRow.addView(btnDetails);
         
                 // Reminder toggle (top-right)
