@@ -43,6 +43,9 @@ public class EmiStore {
 
         // Per‑installment flags to track which dates are paid
         public List<Boolean> paidFlags = new ArrayList<>();
+
+        // NEW: whether reminder is enabled for this scheme
+        public boolean reminderEnabled = false;
     }
 
     private static final String PREFS_NAME = "ExpenseManagerPrefs";
@@ -270,6 +273,9 @@ public class EmiStore {
                     }
                     o.put("paidFlags", flags);
 
+                    // NEW: save reminder flag
+                    o.put("reminderEnabled", s.reminderEnabled);
+
                     arr.put(o);
                 }
                 root.put(key, arr);
@@ -337,6 +343,9 @@ public class EmiStore {
                             s.paidFlags.add(j < s.paidCount);
                         }
                     }
+
+                    // NEW: load reminder flag (default false for old data)
+                    s.reminderEnabled = o.optBoolean("reminderEnabled", false);
 
                     list.add(s);
                 }
