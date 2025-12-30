@@ -36,6 +36,9 @@ public class BcStore {
 
         // optional: flags per installment if you already use them elsewhere
         public List<Boolean> paidFlags = new ArrayList<>();
+
+        // NEW: whether reminder is enabled for this scheme
+        public boolean reminderEnabled = false;
     }
 
     private static final String PREFS_NAME = "ExpenseManagerPrefs";
@@ -123,7 +126,7 @@ public class BcStore {
         }
     }
 
-    // NEW: find a scheme anywhere in the map by its id
+    // find a scheme anywhere in the map by its id
     public static BcScheme findSchemeById(String bcId) {
         if (TextUtils.isEmpty(bcId)) return null;
         for (String key : bcMap.keySet()) {
@@ -263,6 +266,9 @@ public class BcStore {
                     }
                     o.put("paidFlags", flags);
 
+                    // NEW: save reminder flag
+                    o.put("reminderEnabled", s.reminderEnabled);
+
                     arr.put(o);
                 }
                 root.put(key, arr);
@@ -331,6 +337,9 @@ public class BcStore {
                             s.paidFlags.add(j < s.paidCount);
                         }
                     }
+
+                    // NEW: load reminder flag (default false for old data)
+                    s.reminderEnabled = o.optBoolean("reminderEnabled", false);
 
                     list.add(s);
                 }
