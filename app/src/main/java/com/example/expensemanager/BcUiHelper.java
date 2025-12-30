@@ -365,33 +365,10 @@ public class BcUiHelper {
             listLayout.addView(tv);
         } else {
             for (BcScheme scheme : schemes) {
-                LinearLayout schemeRow = new LinearLayout(ctx);
-                schemeRow.setOrientation(LinearLayout.HORIZONTAL);
-                schemeRow.setGravity(Gravity.CENTER_VERTICAL);
-        
-                // Scheme name button (takes most space)
-                Button btnDetails = new Button(ctx);
-                btnDetails.setText(scheme.name);
-                btnDetails.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-                btnDetails.setOnClickListener(v -> showBcDetailsDialog(fragment, scheme));
-                schemeRow.addView(btnDetails);
-        
-                // Reminder toggle (top-right)
-                ToggleButton toggleReminder = new ToggleButton(ctx);
-                toggleReminder.setTextOn("ON");
-                toggleReminder.setTextOff("OFF");
-                toggleReminder.setChecked(scheme.reminderEnabled);
-                toggleReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                    scheme.reminderEnabled = isChecked;
-                    BcStore.save(ctx);
-                    Toast.makeText(ctx, scheme.name + " reminder " + (isChecked ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
-                });
-                LinearLayout.LayoutParams toggleParams = new LinearLayout.LayoutParams(dpToPx(fragment, 80), LinearLayout.LayoutParams.WRAP_CONTENT);
-                toggleParams.setMargins(0, dpToPx(fragment, 8), 0, 0);
-                toggleReminder.setLayoutParams(toggleParams);
-                schemeRow.addView(toggleReminder);
-        
-                listLayout.addView(schemeRow);
+                Button btn = new Button(ctx);
+                btn.setText(scheme.name);
+                btn.setOnClickListener(v -> showBcDetailsDialog(fragment, scheme));
+                listLayout.addView(btn);
             }
         }
 
@@ -418,6 +395,12 @@ public class BcUiHelper {
         int headerBg = Color.parseColor("#928E85");
         int headerText = Color.BLACK;
 
+        LinearLayout headerContainer = new LinearLayout(ctx);
+        headerContainer.setOrientation(LinearLayout.HORIZONTAL);
+        headerContainer.setGravity(Gravity.CENTER_VERTICAL);
+
+        headerContainer.setBackgroundColor(headerBg);
+
         TableRow header = new TableRow(ctx);
 
         TextView hSr = createHeaderCell(ctx, "Sr.", cellPad);
@@ -440,6 +423,21 @@ public class BcUiHelper {
         header.addView(hDate);
         header.addView(hAmt);
         table.addView(header);
+
+        ToggleButton toggleReminder = new ToggleButton(ctx);
+        toggleReminder.setTextOn("ON");
+        toggleReminder.setTextOff("OFF");
+        toggleReminder.setChecked(scheme.reminderEnabled);
+        toggleReminder.setLayoutParams(new LinearLayout.LayoutParams(dpToPx(fragment, 70), dpToPx(fragment, 40)));
+        toggleReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            scheme.reminderEnabled = isChecked;
+            BcStore.save(ctx);
+            Toast.makeText(ctx, scheme.name + " reminder " + (isChecked ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
+        });
+
+        headerContainer.addView(header);
+        headerContainer.addView(toggleReminder);
+        table.addView(headerContainer);
 
         for (int i = 0; i < scheme.scheduleDates.size(); i++) {
 
