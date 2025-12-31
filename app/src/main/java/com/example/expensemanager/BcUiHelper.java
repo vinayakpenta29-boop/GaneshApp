@@ -377,125 +377,105 @@ public class BcUiHelper {
     }
 
     // BC details: schedule table + header toggle (top-right)
-    public static void showBcDetailsDialog(Fragment fragment, BcScheme scheme) {
-        Context ctx = fragment.requireContext();
+public static void showBcDetailsDialog(Fragment fragment, BcScheme scheme) {
+    Context ctx = fragment.requireContext();
 
-        TableLayout table = new TableLayout(ctx);
-        table.setStretchAllColumns(true);
-        table.setShrinkAllColumns(true);
-        table.setPadding(0, 0, 0, 0);
+    // ===== TOP BAR (Title + Reminder Toggle) =====
+    LinearLayout topBar = new LinearLayout(ctx);
+    topBar.setOrientation(LinearLayout.HORIZONTAL);
+    topBar.setGravity(Gravity.CENTER_VERTICAL);
 
-        int cellPad = dpToPx(fragment, 4);
-        int headerBg = Color.parseColor("#928E85");
-        int headerText = Color.BLACK;
+    TextView title = new TextView(ctx);
+    title.setText("BC: " + scheme.name);
+    title.setTextSize(18);
+    title.setTypeface(null, android.graphics.Typeface.BOLD);
+    title.setLayoutParams(new LinearLayout.LayoutParams(
+            0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
 
-        // Header + toggle container
-        LinearLayout headerContainer = new LinearLayout(ctx);
-        headerContainer.setOrientation(LinearLayout.HORIZONTAL);
-        headerContainer.setGravity(Gravity.CENTER_VERTICAL);
-        headerContainer.setBackgroundColor(headerBg);
+    LinearLayout reminderLayout = new LinearLayout(ctx);
+    reminderLayout.setOrientation(LinearLayout.HORIZONTAL);
+    reminderLayout.setGravity(Gravity.CENTER_VERTICAL);
 
-        TableRow header = new TableRow(ctx);
+    TextView tvReminder = new TextView(ctx);
+    tvReminder.setText("Reminder");
+    tvReminder.setPadding(0, 0, dpToPx(fragment, 8), 0);
 
-        TextView hSr = createHeaderCell(ctx, "Sr.", cellPad);
-        TextView hStatus = createHeaderCell(ctx, "Status", cellPad);
-        TextView hDate = createHeaderCell(ctx, "Date", cellPad);
-        TextView hAmt = createHeaderCell(ctx, "Amount", cellPad);
+    ToggleButton toggle = new ToggleButton(ctx);
+    toggle.setTextOn("");
+    toggle.setTextOff("");
+    toggle.setChecked(scheme.reminderEnabled);
+    toggle.setOnCheckedChangeListener((b, isChecked) -> {
+        scheme.reminderEnabled = isChecked;
+        BcStore.save(ctx);
+    });
 
-        hSr.setBackgroundColor(headerBg);
-        hStatus.setBackgroundColor(headerBg);
-        hDate.setBackgroundColor(headerBg);
-        hAmt.setBackgroundColor(headerBg);
+    reminderLayout.addView(tvReminder);
+    reminderLayout.addView(toggle);
 
-        hSr.setTextColor(headerText);
-        hStatus.setTextColor(headerText);
-        hDate.setTextColor(headerText);
-        hAmt.setTextColor(headerText);
+    topBar.addView(title);
+    topBar.addView(reminderLayout);
 
-        header.addView(hSr);
-        header.addView(hStatus);
-        header.addView(hDate);
-        header.addView(hAmt);
+    // ===== TABLE =====
+    TableLayout table = new TableLayout(ctx);
+    table.setStretchAllColumns(true);
 
-        // Reminder toggle on top-right
-        ToggleButton toggleReminder = new ToggleButton(ctx);
-        toggleReminder.setTextOn("ON");
-        toggleReminder.setTextOff("OFF");
-        toggleReminder.setChecked(scheme.reminderEnabled);
-        LinearLayout.LayoutParams toggleParams = new LinearLayout.LayoutParams(
-                dpToPx(fragment, 70), dpToPx(fragment, 40));
-        toggleParams.setMargins(dpToPx(fragment, 8), 0, 0, 0);
-        toggleReminder.setLayoutParams(toggleParams);
-        toggleReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            scheme.reminderEnabled = isChecked;
-            BcStore.save(ctx);
-            Toast.makeText(ctx,
-                    scheme.name + " reminder " + (isChecked ? "ON" : "OFF"),
-                    Toast.LENGTH_SHORT).show();
-        });
+    int cellPad = dpToPx(fragment, 4);
+    int headerBg = Color.parseColor("#928E85");
 
-        headerContainer.addView(header);
-        headerContainer.addView(toggleReminder);
-        table.addView(headerContainer);
+    TableRow header = new TableRow(ctx);
+    header.addView(createHeaderCell(ctx, "Sr.", cellPad));
+    header.addView(createHeaderCell(ctx, "Status", cellPad));
+    header.addView(createHeaderCell(ctx, "Date", cellPad));
+    header.addView(createHeaderCell(ctx, "Amount", cellPad));
 
-        // Rows
-        for (int i = 0; i < scheme.scheduleDates.size(); i++) {
+    for (int i = 0; i < header.getChildCount(); i++) {
+        header.getChildAt(i).setBackgroundColor(headerBg);
+    }
+    table.addView(header);
 
-            String date = scheme.scheduleDates.get(i);
+    // ===== ROWS =====
+    for (int i = 0; i < scheme.scheduleDates.size(); i++) {
 
-            int amount = 0;
-            if ("FIXED".equals(scheme.installmentType)) {
-                amount = scheme.fixedAmount;
-            } else if ("RANDOM".equals(scheme.installmentType)
-                    && i < scheme.monthlyAmounts.size()) {
-                amount = scheme.monthlyAmounts.get(i);
-            }
+        boolean done = scheme.paidFlags != null
+                && i < scheme.paidFlags.size()
+                && scheme.paidFlags.get(i);
 
-            boolean done = scheme.paidFlags != null
-                    && i < scheme.paidFlags.size()
-                    && scheme.paidFlags.get(i);
-
-            TableRow row = new TableRow(ctx);
-            row.setPadding(0, 0, 0, 0);
-            if (done) {
-                row.setBackgroundResource(R.drawable.bg_row_paid);
-            }
-
-            TextView tvSr = createCell(ctx, String.valueOf(i + 1), cellPad, true);
-            if (done) tvSr.setTextColor(Color.parseColor("#2E7D32"));
-            row.addView(tvSr);
-
-            TextView tvStatus = createCell(ctx, done ? "✅ " : "☐ ", cellPad, false);
-            if (done) tvStatus.setTextColor(Color.parseColor("#2E7D32"));
-            row.addView(tvStatus);
-
-            TextView tvDate = createCell(ctx, date, cellPad, true);
-            if (done) tvDate.setTextColor(Color.parseColor("#2E7D32"));
-            row.addView(tvDate);
-
-            TextView tvAmt = createCell(ctx, String.valueOf(amount), cellPad, true);
-            if (done) tvAmt.setTextColor(Color.parseColor("#2E7D32"));
-            row.addView(tvAmt);
-
-            table.addView(row);
+        int amount = 0;
+        if ("FIXED".equals(scheme.installmentType)) {
+            amount = scheme.fixedAmount;
+        } else if ("RANDOM".equals(scheme.installmentType)
+                && i < scheme.monthlyAmounts.size()) {
+            amount = scheme.monthlyAmounts.get(i);
         }
 
-        ScrollView scrollView = new ScrollView(ctx);
-        scrollView.addView(table);
+        TableRow row = new TableRow(ctx);
+        if (done) row.setBackgroundResource(R.drawable.bg_row_paid);
 
-        LinearLayout container = new LinearLayout(ctx);
-        container.setOrientation(LinearLayout.VERTICAL);
-        int dialogPadding = dpToPx(fragment, 16);
-        container.setPadding(dialogPadding, dialogPadding, dialogPadding, dialogPadding);
-        container.setBackgroundResource(R.drawable.bg_table_container);
-        container.addView(scrollView);
+        row.addView(createCell(ctx, String.valueOf(i + 1), cellPad, done));
+        row.addView(createCell(ctx, done ? "✅" : "☐", cellPad, done));
+        row.addView(createCell(ctx, scheme.scheduleDates.get(i), cellPad, done));
+        row.addView(createCell(ctx, String.valueOf(amount), cellPad, done));
 
-        new android.app.AlertDialog.Builder(ctx)
-                .setTitle("BC: " + scheme.name)
-                .setView(container)
-                .setPositiveButton("Close", null)
-                .show();
+        table.addView(row);
     }
+
+    ScrollView scroll = new ScrollView(ctx);
+    scroll.addView(table);
+
+    LinearLayout container = new LinearLayout(ctx);
+    container.setOrientation(LinearLayout.VERTICAL);
+    int dialogPad = dpToPx(fragment, 16);
+    container.setPadding(dialogPad, dialogPad, dialogPad, dialogPad);
+    container.setBackgroundResource(R.drawable.bg_table_container);
+
+    container.addView(topBar);
+    container.addView(scroll);
+
+    new android.app.AlertDialog.Builder(ctx)
+            .setView(container)
+            .setPositiveButton("Close", null)
+            .show();
+}
 
     private static TextView createHeaderCell(Context ctx, String text, int pad) {
         TextView tv = new TextView(ctx);
