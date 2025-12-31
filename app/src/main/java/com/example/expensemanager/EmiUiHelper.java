@@ -5,16 +5,16 @@ import android.content.Context;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
+import androidx.appcompat.widget.SwitchCompat;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
-import android.widget.ToggleButton;
-import android.widget.TableLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.graphics.Color;
 
 import androidx.fragment.app.Fragment;
@@ -25,7 +25,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -40,7 +39,6 @@ public class EmiUiHelper {
         return Math.round(dp * density);
     }
 
-    // Simple menu; caller can still use it but should pass ownerTab into showAddEmiDialog
     public static void showEmiMenu(Fragment fragment, View anchor) {
         android.widget.PopupMenu menu =
                 new android.widget.PopupMenu(fragment.getContext(), anchor);
@@ -51,7 +49,6 @@ public class EmiUiHelper {
             String title = item.getTitle().toString();
             String ownerTab = "INCOME";
             if ("Add EMI".equals(title)) {
-                // default ownerTab when called this way
                 showAddEmiDialog(fragment, ownerTab, null);
             } else if ("View EMI List".equals(title)) {
                 showEmiListDialog(fragment, ownerTab);
@@ -61,17 +58,11 @@ public class EmiUiHelper {
         menu.show();
     }
 
-    /**
-     * Used when category = EMI (select which EMI scheme).
-     *
-     * @param ownerTab "INCOME" when called from Income tab, "EXPENSE" from Expenses tab.
-     */
     public static void showSelectEmiDialog(Fragment fragment,
                                            String ownerTab,
                                            EmiStore.OnEmiSelectedListener listener) {
         Context ctx = fragment.requireContext();
 
-        // Filter by owner tab so Income and Expenses see different EMI lists
         List<EmiScheme> schemes = EmiStore.getSchemesForOwner(ownerTab);
         if (schemes.isEmpty()) {
             Toast.makeText(ctx, "No EMI schemes found", Toast.LENGTH_SHORT).show();
@@ -82,8 +73,7 @@ public class EmiUiHelper {
         List<String> ids = new ArrayList<>();
 
         for (EmiScheme s : schemes) {
-            String label = s.name;
-            labels.add(label);
+            labels.add(s.name);
             ids.add(s.id);
         }
 
@@ -98,11 +88,6 @@ public class EmiUiHelper {
                 .show();
     }
 
-    /**
-     * ADD EMI (like Add BC).
-     *
-     * @param ownerTab "INCOME" or "EXPENSE" so scheme is tagged for the correct tab.
-     */
     public static void showAddEmiDialog(Fragment fragment,
                                         String ownerTab,
                                         OnEmiAddedListener listener) {
@@ -310,11 +295,9 @@ public class EmiUiHelper {
                         scheme.monthlyAmounts.clear();
                     }
 
-                    // tag owner tab for separation between Income and Expenses
                     if (!TextUtils.isEmpty(ownerTab)) {
                         scheme.ownerTab = ownerTab;
                     } else {
-                        // default for old calls
                         scheme.ownerTab = "EXPENSE";
                     }
 
@@ -343,6 +326,7 @@ public class EmiUiHelper {
         }
     }
 
+    // EMI list: ONLY scheme buttons, no toggle here (like BC)
     public static void showEmiListDialog(Fragment fragment, String ownerTab) {
         Context ctx = fragment.requireContext();
 
@@ -360,33 +344,10 @@ public class EmiUiHelper {
             listLayout.addView(tv);
         } else {
             for (EmiScheme scheme : schemes) {
-                LinearLayout schemeRow = new LinearLayout(ctx);
-                schemeRow.setOrientation(LinearLayout.HORIZONTAL);
-                schemeRow.setGravity(Gravity.CENTER_VERTICAL);
-        
-                // Scheme name button (takes most space)
                 Button btnDetails = new Button(ctx);
                 btnDetails.setText(scheme.name);
-                btnDetails.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
                 btnDetails.setOnClickListener(v -> showEmiDetailsDialog(fragment, scheme));
-                schemeRow.addView(btnDetails);
-        
-                // Reminder toggle (top-right)
-                ToggleButton toggleReminder = new ToggleButton(ctx);
-                toggleReminder.setTextOn("ON");
-                toggleReminder.setTextOff("OFF");
-                toggleReminder.setChecked(scheme.reminderEnabled);
-                toggleReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                    scheme.reminderEnabled = isChecked;
-                    EmiStore.save(ctx);
-                    Toast.makeText(ctx, scheme.name + " reminder " + (isChecked ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
-                });
-                LinearLayout.LayoutParams toggleParams = new LinearLayout.LayoutParams(dpToPx(fragment, 80), LinearLayout.LayoutParams.WRAP_CONTENT);
-                toggleParams.setMargins(0, dpToPx(fragment, 8), 0, 0);
-                toggleReminder.setLayoutParams(toggleParams);
-                schemeRow.addView(toggleReminder);
-        
-                listLayout.addView(schemeRow);
+                listLayout.addView(btnDetails);
             }
         }
 
@@ -400,45 +361,68 @@ public class EmiUiHelper {
                 .show();
     }
 
+    // EMI details: schedule table + header toggle (exactly like BC)
     public static void showEmiDetailsDialog(Fragment fragment, EmiScheme scheme) {
         Context ctx = fragment.requireContext();
 
+        // ===== TOP BAR (Title + Reminder Toggle) =====
+        LinearLayout topBar = new LinearLayout(ctx);
+        topBar.setOrientation(LinearLayout.HORIZONTAL);
+        topBar.setGravity(Gravity.CENTER_VERTICAL);
+
+        TextView title = new TextView(ctx);
+        title.setText("EMI: " + scheme.name);
+        title.setTextSize(18);
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        title.setLayoutParams(new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
+        LinearLayout reminderLayout = new LinearLayout(ctx);
+        reminderLayout.setOrientation(LinearLayout.HORIZONTAL);
+        reminderLayout.setGravity(Gravity.CENTER_VERTICAL);
+
+        TextView tvReminder = new TextView(ctx);
+        tvReminder.setText("Reminder");
+        tvReminder.setPadding(0, 0, dpToPx(fragment, 8), 0);
+
+        SwitchCompat toggle = new SwitchCompat(ctx);
+        toggle.setChecked(scheme.reminderEnabled);
+        toggle.setThumbResource(R.drawable.switch_thumb);
+        toggle.setTrackResource(R.drawable.switch_track);
+        toggle.setShowText(false);
+        toggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            scheme.reminderEnabled = isChecked;
+            EmiStore.save(ctx);
+        });
+
+        reminderLayout.addView(tvReminder);
+        reminderLayout.addView(toggle);
+        topBar.addView(title);
+        topBar.addView(reminderLayout);
+
+        // ===== TABLE =====
         TableLayout table = new TableLayout(ctx);
         table.setStretchAllColumns(true);
-        table.setShrinkAllColumns(true);
-        table.setPadding(0, 0, 0, 0);
 
         int cellPad = dpToPx(fragment, 4);
-
         int headerBg = Color.parseColor("#928E85");
-        int headerText = Color.BLACK;
 
         TableRow header = new TableRow(ctx);
+        header.addView(createHeaderCell(ctx, "Sr.", cellPad));
+        header.addView(createHeaderCell(ctx, "Status", cellPad));
+        header.addView(createHeaderCell(ctx, "Date", cellPad));
+        header.addView(createHeaderCell(ctx, "Amount", cellPad));
 
-        TextView hSr = createHeaderCell(ctx, "Sr.", cellPad);
-        TextView hStatus = createHeaderCell(ctx, "Status", cellPad);
-        TextView hDate = createHeaderCell(ctx, "Date", cellPad);
-        TextView hAmt = createHeaderCell(ctx, "Amount", cellPad);
-
-        hSr.setBackgroundColor(headerBg);
-        hStatus.setBackgroundColor(headerBg);
-        hDate.setBackgroundColor(headerBg);
-        hAmt.setBackgroundColor(headerBg);
-
-        hSr.setTextColor(headerText);
-        hStatus.setTextColor(headerText);
-        hDate.setTextColor(headerText);
-        hAmt.setTextColor(headerText);
-
-        header.addView(hSr);
-        header.addView(hStatus);
-        header.addView(hDate);
-        header.addView(hAmt);
+        for (int i = 0; i < header.getChildCount(); i++) {
+            header.getChildAt(i).setBackgroundColor(headerBg);
+        }
         table.addView(header);
 
+        // ===== ROWS =====
         for (int i = 0; i < scheme.scheduleDates.size(); i++) {
-
-            String date = scheme.scheduleDates.get(i);
+            boolean done = scheme.paidFlags != null
+                    && i < scheme.paidFlags.size()
+                    && scheme.paidFlags.get(i);
 
             int amount = 0;
             if ("FIXED".equals(scheme.installmentType)) {
@@ -448,49 +432,30 @@ public class EmiUiHelper {
                 amount = scheme.monthlyAmounts.get(i);
             }
 
-            boolean done = false;
-            if (scheme.paidFlags != null && i < scheme.paidFlags.size()) {
-                done = scheme.paidFlags.get(i);
-            }
-
             TableRow row = new TableRow(ctx);
-            row.setPadding(0, 0, 0, 0);
-            if (done) {
-                row.setBackgroundResource(R.drawable.bg_row_paid);
-            }
+            if (done) row.setBackgroundResource(R.drawable.bg_row_paid);
 
-            TextView tvSr = createCell(ctx, String.valueOf(i + 1), cellPad, true);
-            if (done) tvSr.setTextColor(Color.parseColor("#2E7D32"));
-            row.addView(tvSr);
-
-            TextView tvStatus = createCell(ctx, done ? "✅ " : "☐ ", cellPad, false);
-            if (done) tvStatus.setTextColor(Color.parseColor("#2E7D32"));
-            row.addView(tvStatus);
-
-            TextView tvDate = createCell(ctx, date, cellPad, true);
-            if (done) tvDate.setTextColor(Color.parseColor("#2E7D32"));
-            row.addView(tvDate);
-
-            TextView tvAmt = createCell(ctx, String.valueOf(amount), cellPad, true);
-            if (done) tvAmt.setTextColor(Color.parseColor("#2E7D32"));
-            row.addView(tvAmt);
+            row.addView(createCell(ctx, String.valueOf(i + 1), cellPad, done));
+            row.addView(createCell(ctx, done ? "✅" : "☐", cellPad, done));
+            row.addView(createCell(ctx, scheme.scheduleDates.get(i), cellPad, done));
+            row.addView(createCell(ctx, String.valueOf(amount), cellPad, done));
 
             table.addView(row);
         }
 
-        ScrollView scrollView = new ScrollView(ctx);
-        scrollView.addView(table);
+        ScrollView scroll = new ScrollView(ctx);
+        scroll.addView(table);
+
         LinearLayout container = new LinearLayout(ctx);
         container.setOrientation(LinearLayout.VERTICAL);
-
-        int dialogPadding = dpToPx(fragment, 16);
-        container.setPadding(dialogPadding, dialogPadding, dialogPadding, dialogPadding);
+        int dialogPad = dpToPx(fragment, 16);
+        container.setPadding(dialogPad, dialogPad, dialogPad, dialogPad);
         container.setBackgroundResource(R.drawable.bg_table_container);
 
-        container.addView(scrollView);
+        container.addView(topBar);
+        container.addView(scroll);
 
         new android.app.AlertDialog.Builder(ctx)
-                .setTitle("EMI: " + scheme.name)
                 .setView(container)
                 .setPositiveButton("Close", null)
                 .show();
@@ -507,14 +472,19 @@ public class EmiUiHelper {
         return tv;
     }
 
-    private static TextView createCell(Context ctx, String text, int pad, boolean bold) {
+    // ✅ Green text for paid rows (exactly like BcUiHelper)
+    private static TextView createCell(Context ctx, String text, int pad, boolean isPaid) {
         TextView tv = new TextView(ctx);
         tv.setText(text);
         tv.setGravity(Gravity.CENTER);
         tv.setPadding(pad, pad, pad, pad);
-        tv.setTextColor(Color.BLACK);
-        if (bold) tv.setTypeface(null, android.graphics.Typeface.BOLD);
         tv.setBackgroundResource(R.drawable.table_cell_border);
+        
+        if (isPaid) {
+            tv.setTextColor(Color.parseColor("#2E7D32"));  // ✅ GREEN for paid
+        } else {
+            tv.setTextColor(Color.BLACK);
+        }
         return tv;
     }
 }
