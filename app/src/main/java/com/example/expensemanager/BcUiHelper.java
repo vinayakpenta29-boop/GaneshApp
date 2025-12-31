@@ -40,7 +40,6 @@ public class BcUiHelper {
     }
 
     // Legacy menu – kept only if still used somewhere else
-    // (Income/Expenses fragments now build their own popup with ownerTab)
     public static void showBcMenu(Fragment fragment, View anchor) {
         android.widget.PopupMenu menu =
                 new android.widget.PopupMenu(fragment.getContext(), anchor);
@@ -68,8 +67,6 @@ public class BcUiHelper {
 
     /**
      * Dialog used when category = BC (select which BC scheme).
-     *
-     * @param ownerTab "INCOME" when called from Income tab, "EXPENSE" from Expenses tab.
      */
     public static void showSelectBcDialog(Fragment fragment,
                                           String ownerTab,
@@ -105,8 +102,6 @@ public class BcUiHelper {
 
     /**
      * Add BC dialog.
-     *
-     * @param ownerTab "INCOME" or "EXPENSE" so the scheme is tagged correctly.
      */
     public static void showAddBcDialog(Fragment fragment,
                                        String ownerTab,
@@ -315,7 +310,6 @@ public class BcUiHelper {
                         scheme.monthlyAmounts.clear();
                     }
 
-                    // tag owner tab so schemes do not mix between Income and Expenses
                     if (!TextUtils.isEmpty(ownerTab)) {
                         scheme.ownerTab = ownerTab;
                     } else {
@@ -347,7 +341,7 @@ public class BcUiHelper {
         }
     }
 
-    // NEW: List dialog that filters by ownerTab
+    // BC list: ONLY scheme buttons, no toggle here
     public static void showBcListDialog(Fragment fragment, String ownerTab) {
         Context ctx = fragment.requireContext();
 
@@ -365,10 +359,10 @@ public class BcUiHelper {
             listLayout.addView(tv);
         } else {
             for (BcScheme scheme : schemes) {
-                Button btn = new Button(ctx);
-                btn.setText(scheme.name);
-                btn.setOnClickListener(v -> showBcDetailsDialog(fragment, scheme));
-                listLayout.addView(btn);
+                Button btnDetails = new Button(ctx);
+                btnDetails.setText(scheme.name);
+                btnDetails.setOnClickListener(v -> showBcDetailsDialog(fragment, scheme));
+                listLayout.addView(btnDetails);
             }
         }
 
@@ -382,6 +376,7 @@ public class BcUiHelper {
                 .show();
     }
 
+    // BC details: schedule table + header toggle (top-right)
     public static void showBcDetailsDialog(Fragment fragment, BcScheme scheme) {
         Context ctx = fragment.requireContext();
 
@@ -391,14 +386,13 @@ public class BcUiHelper {
         table.setPadding(0, 0, 0, 0);
 
         int cellPad = dpToPx(fragment, 4);
-
         int headerBg = Color.parseColor("#928E85");
         int headerText = Color.BLACK;
 
+        // Header + toggle container
         LinearLayout headerContainer = new LinearLayout(ctx);
         headerContainer.setOrientation(LinearLayout.HORIZONTAL);
         headerContainer.setGravity(Gravity.CENTER_VERTICAL);
-
         headerContainer.setBackgroundColor(headerBg);
 
         TableRow header = new TableRow(ctx);
@@ -422,23 +416,29 @@ public class BcUiHelper {
         header.addView(hStatus);
         header.addView(hDate);
         header.addView(hAmt);
-        table.addView(header);
 
+        // Reminder toggle on top-right
         ToggleButton toggleReminder = new ToggleButton(ctx);
         toggleReminder.setTextOn("ON");
         toggleReminder.setTextOff("OFF");
         toggleReminder.setChecked(scheme.reminderEnabled);
-        toggleReminder.setLayoutParams(new LinearLayout.LayoutParams(dpToPx(fragment, 70), dpToPx(fragment, 40)));
+        LinearLayout.LayoutParams toggleParams = new LinearLayout.LayoutParams(
+                dpToPx(fragment, 70), dpToPx(fragment, 40));
+        toggleParams.setMargins(dpToPx(fragment, 8), 0, 0, 0);
+        toggleReminder.setLayoutParams(toggleParams);
         toggleReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
             scheme.reminderEnabled = isChecked;
             BcStore.save(ctx);
-            Toast.makeText(ctx, scheme.name + " reminder " + (isChecked ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
+            Toast.makeText(ctx,
+                    scheme.name + " reminder " + (isChecked ? "ON" : "OFF"),
+                    Toast.LENGTH_SHORT).show();
         });
 
         headerContainer.addView(header);
         headerContainer.addView(toggleReminder);
         table.addView(headerContainer);
 
+        // Rows
         for (int i = 0; i < scheme.scheduleDates.size(); i++) {
 
             String date = scheme.scheduleDates.get(i);
@@ -451,7 +451,9 @@ public class BcUiHelper {
                 amount = scheme.monthlyAmounts.get(i);
             }
 
-            boolean done = scheme.paidFlags != null && i < scheme.paidFlags.size() && scheme.paidFlags.get(i);
+            boolean done = scheme.paidFlags != null
+                    && i < scheme.paidFlags.size()
+                    && scheme.paidFlags.get(i);
 
             TableRow row = new TableRow(ctx);
             row.setPadding(0, 0, 0, 0);
@@ -480,13 +482,12 @@ public class BcUiHelper {
 
         ScrollView scrollView = new ScrollView(ctx);
         scrollView.addView(table);
+
         LinearLayout container = new LinearLayout(ctx);
         container.setOrientation(LinearLayout.VERTICAL);
-
         int dialogPadding = dpToPx(fragment, 16);
         container.setPadding(dialogPadding, dialogPadding, dialogPadding, dialogPadding);
         container.setBackgroundResource(R.drawable.bg_table_container);
-
         container.addView(scrollView);
 
         new android.app.AlertDialog.Builder(ctx)
