@@ -400,14 +400,17 @@ public static void showBcDetailsDialog(Fragment fragment, BcScheme scheme) {
     tvReminder.setText("Reminder");
     tvReminder.setPadding(0, 0, dpToPx(fragment, 8), 0);
 
-    ToggleButton toggle = new ToggleButton(ctx);
-    toggle.setTextOn("");
-    toggle.setTextOff("");
+    SwitchCompat toggle = new SwitchCompat(ctx);
     toggle.setChecked(scheme.reminderEnabled);
-    toggle.setOnCheckedChangeListener((b, isChecked) -> {
+    toggle.setThumbResource(R.drawable.switch_thumb);
+    toggle.setTrackResource(R.drawable.switch_track);
+    toggle.setShowText(false);
+
+    toggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
         scheme.reminderEnabled = isChecked;
         BcStore.save(ctx);
     });
+
 
     reminderLayout.addView(tvReminder);
     reminderLayout.addView(toggle);
