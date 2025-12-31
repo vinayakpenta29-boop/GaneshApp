@@ -5,6 +5,7 @@ import android.content.Context;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.Gravity;
+import androidx.appcompat.widget.SwitchCompat;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
